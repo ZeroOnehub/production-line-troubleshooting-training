@@ -1,8 +1,8 @@
 #!/bin/bash
-# 双击启动产线排障情景训练系统。启动后浏览器会自动打开首页；关闭这个窗口即停止系统。
+# 双击启动佳境产线排障情景训练系统。启动后浏览器会自动打开首页；关闭这个窗口即停止系统。
 cd "$(dirname "$0")"
 OPEN_URL="http://localhost:8000"
-echo "== 产线排障情景训练系统 =="
+echo "== 佳境 · 产线排障情景训练系统 =="
 if [ ! -x .venv/bin/python ]; then
   if ! command -v python3 >/dev/null 2>&1; then
     echo "没有找到 Python。请先安装 Python 3.13：https://www.python.org/downloads/"

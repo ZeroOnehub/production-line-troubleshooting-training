@@ -20,7 +20,7 @@ function TopBar() {
     <header className="flex h-12 items-center gap-2 border-b border-hmi-line bg-hmi-panel px-3">
       <Link to="/" className="mr-2 flex items-center gap-2 font-semibold text-white">
         <span className="flex flex-col gap-[2px]"><span className="h-1.5 w-3 rounded-sm bg-hmi-red" /><span className="h-1.5 w-3 rounded-sm bg-hmi-amber" /><span className="h-1.5 w-3 rounded-sm bg-hmi-green" /></span>
-        产线排障情景训练
+        佳境
       </Link>
       <NavLink to="/train" className={link}>训练端</NavLink>
       <NavLink to="/workshop" className={link}>关卡工坊</NavLink>
@@ -46,7 +46,7 @@ function Home() {
   return (
     <div className="mx-auto max-w-6xl space-y-6 p-6">
       <div>
-        <h1 className="text-2xl font-semibold text-white">产线排障情景训练系统</h1>
+        <h1 className="text-2xl font-semibold text-white">佳境 · 产线排障情景训练系统</h1>
         <p className="mt-2 text-sm text-hmi-dim">OP30 电机总成螺栓拧紧工位（虚构示例）。设备反应、违规判定、得分和维修到场时间全部由规则状态机计算；大模型只负责口语理解、陪练提示、电话追问、复盘点评和关卡起草。</p>
       </div>
       <div className="grid grid-cols-1 gap-3 md:grid-cols-2">

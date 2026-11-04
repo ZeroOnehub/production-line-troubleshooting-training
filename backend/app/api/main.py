@@ -19,7 +19,7 @@ from starlette.concurrency import run_in_threadpool
 from ..services import Runtime, ServiceError, get_runtime
 from ..voice.adapters import VoiceUnavailable
 
-app = FastAPI(title="产线排障情景训练系统", version="0.1.0")
+app = FastAPI(title="佳境 · 产线排障情景训练系统", version="0.1.0")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 
 _subscribers: dict[str, set[WebSocket]] = defaultdict(set)
