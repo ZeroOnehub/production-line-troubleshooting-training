@@ -1,0 +1,65 @@
+id: SCN-T107
+version: 1
+type: alarm
+layer: 3
+station: OP30
+title: 气源压力低
+alarm: T-107
+summary: HMI 报 T-107 气源压力低。从工位手阀未全开、车间供气异常中随机抽一个根因。
+story: 午饭后开机。第 3 件还没上，HMI 就报气源压力低。
+objective: 确认手阀，能自己处理的自己处理，手阀正常仍低压叫维修
+event: {at_piece: 3}
+root_causes:
+  - id: RC-T107-A
+    name: 工位手阀未全开
+    weight: 0.6
+    in_operator_scope: true
+    setup: {hand_valve: half}
+    clues:
+      - {indicator: pressure_gauge, value: "0.36 MPa（红区）"}
+      - {component: hand_valve, state: half, view: closeup/valve_half.webp}
+    direction: 气从哪儿进你这个工位的？顺着管子看看。
+    leak_keywords: [手阀半开, 阀没开全, 开了一半, 45°, 打开手阀]
+    correct_path:
+      - {action: inspect, target: hmi}
+      - {action: inspect, target: pressure_gauge}
+      - {action: inspect, target: hand_valve}
+      - {action: open_hand_valve}
+      - {action: reset_alarm}
+      - {action: resume}
+  - id: RC-T107-B
+    name: 车间供气异常
+    weight: 0.4
+    in_operator_scope: false
+    setup: {air_supply: low}
+    clues:
+      - {indicator: pressure_gauge, value: "0.35 MPa（红区）"}
+      - {component: hand_valve, state: open, view: closeup/valve_open.webp}
+    andon_target: maintenance
+    repair: {air_supply: normal}
+    repair_first_piece: false
+    direction: 你这儿能管的都正常了还低，那问题在你这个工位外面。
+    leak_keywords: [车间供气, 主管路, 供气异常, 空压机, 外面没气]
+    correct_path:
+      - {action: inspect, target: hmi}
+      - {action: inspect, target: pressure_gauge}
+      - {action: inspect, target: hand_valve}
+      - {action: pull_andon, target: maintenance}
+      - {action: andon_report, elements: all}
+      - {action: wait}
+      - {action: resume}
+distractors:
+  - {target: air_unit_cup, text: 三联件油杯油位偏低，但仍在刻度线以内。}
+  - {target: fixture_seat, text: 夹具定位面有一点油渍反光，工件贴合到位。}
+rules: [R-HDL-08, R-PRM-06, R-HDL-03]
+negative_cases:
+  - name: 自己调调压阀
+    root_cause: RC-T107-B
+    path: [{action: inspect, target: hmi}, {action: adjust_regulator}]
+    expect: {violations: [R-PRM-06]}
+  - name: 没看手阀就叫维修
+    root_cause: RC-T107-A
+    path: [{action: inspect, target: hmi}, {action: pull_andon, target: maintenance}]
+    expect: {violations: [R-HDL-08, R-HDL-04]}
+author: 示例师傅
+reviewed_by: [equipment, quality, ehs]

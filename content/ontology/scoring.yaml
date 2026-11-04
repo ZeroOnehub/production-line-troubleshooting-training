@@ -1,0 +1,74 @@
+# 评分、段位与薄弱点标签。分数全部由引擎按本文件计算，AI 只写点评。
+version: 1
+
+dimensions:
+  safety: {name: 安全, weight: 0.30}
+  quality: {name: 质量, weight: 0.25}
+  efficiency: {name: 效率, weight: 0.20}
+  communication: {name: 沟通, weight: 0.15}
+  hints: {name: 提示, weight: 0.10}
+
+# 效率：停线时长与“标准路径停线时长”之比。比值 ≤ full_ratio 得满分，之后线性下降，最低 floor。
+efficiency:
+  full_ratio: 1.3
+  slope_per_ratio: 40
+  floor: 20
+
+# 沟通：有 Andon 汇报时 = 覆盖率 × 100 − 每轮追问扣分；再减去沟通类规则扣分
+communication:
+  follow_up_penalty: 10
+  no_report_score: 100      # 本局不需要也没有汇报时
+
+# 提示：每用一次按级别扣分
+hints:
+  cost: {1: 10, 2: 20, 3: 35}
+
+pass:
+  min_total: 60
+  require_no_veto: true
+  require_no_ng_escape: true
+  require_objective: true   # 关卡目标完成（根因消除并恢复生产 / 点检完成 / 换型完成 / 班次完成）
+
+stars:
+  three: 90
+  two: 75
+
+# 上一个班：停线总时长阈值 = 标准停线时长 × 系数
+shift:
+  max_downtime_factor: 1.6
+
+# 薄弱点标签（固定枚举）。考官只能从这里选。
+weakness_tags:
+  - 停机再动手
+  - 急停处置
+  - 安全装置
+  - 报警识别
+  - 根因排查
+  - 升级判断
+  - NG 隔离
+  - 首件确认
+  - 汇报完整
+  - 越权操作
+  - 处置效率
+  - 依赖提示
+  - 换型规范
+  - 点检规范
+
+# 关卡地图四层与段位
+layers:
+  - {layer: 1, name: 认识工位, scenarios: [SCN-TOUR]}
+  - {layer: 2, name: 正常作业, scenarios: [SCN-CHECK, SCN-CHG-AB]}
+  - {layer: 3, name: 异常处置, scenarios: [SCN-T101, SCN-T102, SCN-T103, SCN-T104, SCN-T105, SCN-T106, SCN-T107, SCN-T108, SCN-T109, SCN-T110]}
+  - {layer: 4, name: 段位考核, scenarios: [SCN-SHIFT]}
+
+ranks:
+  - {id: apprentice, name: 学徒, requires: null}
+  - {id: independent, name: 独立操作, requires: {passed_all: [SCN-TOUR, SCN-CHECK, SCN-CHG-AB]}}
+  - {id: level1, name: 一级异常处置, requires: {passed_count: {layer: 3, min: 8}}}
+  - {id: master, name: 工位能手, requires: {passed_all: [SCN-SHIFT]}}
+
+unlock:
+  1: null
+  2: {passed_all: [SCN-TOUR]}
+  3: {rank: independent}
+  4: {rank: level1}

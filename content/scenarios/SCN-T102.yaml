@@ -1,0 +1,93 @@
+id: SCN-T102
+version: 1
+type: alarm
+layer: 3
+station: OP30
+title: 拧紧角度超差
+alarm: T-102
+summary: HMI 报 T-102 拧紧角度超差。从螺栓斜入、套筒松动、螺纹孔有异物中随机抽一个根因。
+story: 生产 A 型。第 3 件拧到第 3 颗螺栓时报警停机。
+objective: 找到根因并正确处置，NG 件隔离，恢复生产
+event: {at_piece: 3}
+root_causes:
+  - id: RC-T102-A
+    name: 螺栓斜入
+    weight: 0.4
+    in_operator_scope: true
+    setup: {bolt_seat: cross_threaded}
+    clues:
+      - {indicator: hmi.angle_result, value: "NG 超上限"}
+      - {indicator: tighten_curve, value: 角度超窗，曲线前段有平台}
+      - {component: bolt_seat, state: cross_threaded, view: closeup/bolt_seat_cross.webp}
+    direction: 先别动设备，看看这件上已经拧了的螺栓。
+    leak_keywords: [斜入, 歪了, 歪斜, 拧歪, 斜着, 螺栓翘]
+    correct_path:
+      - {action: inspect, target: hmi}
+      - {action: inspect, target: tighten_curve}
+      - {action: inspect, target: bolt_seat}
+      - {action: pause_equipment}
+      - {action: isolate_ng_part}
+      - {action: reset_alarm}
+      - {action: resume}
+  - id: RC-T102-B
+    name: 套筒松动
+    weight: 0.35
+    in_operator_scope: true
+    setup: {socket: loose}
+    clues:
+      - {indicator: hmi.angle_result, value: "NG 超上限"}
+      - {component: socket, state: loose, view: closeup/socket_loose.webp}
+    direction: 问题可能出在拧的那一头，不在工件上。
+    leak_keywords: [套筒松, 松动, 套筒没装紧, 有间隙, 定位销没卡, 装紧套筒]
+    correct_path:
+      - {action: inspect, target: hmi}
+      - {action: inspect, target: socket}
+      - {action: pause_equipment}
+      - {action: isolate_ng_part}
+      - {action: tighten_socket}
+      - {action: reset_alarm}
+      - {action: first_piece_check}
+      - {action: resume}
+  - id: RC-T102-C
+    name: 螺纹孔有异物
+    weight: 0.25
+    in_operator_scope: false
+    setup: {thread_hole: debris}
+    clues:
+      - {indicator: hmi.angle_result, value: "NG 超上限"}
+      - {component: thread_hole, state: debris, view: closeup/thread_debris.webp}
+    andon_target: quality
+    repair: {thread_hole: clean}
+    repair_first_piece: true
+    direction: 枪和螺栓都正常的话，看看螺栓要拧进去的地方。
+    leak_keywords: [螺纹孔, 切屑, 异物, 孔里有东西, 来料问题, 孔脏]
+    correct_path:
+      - {action: inspect, target: hmi}
+      - {action: inspect, target: thread_hole}
+      - {action: pause_equipment}
+      - {action: isolate_ng_part}
+      - {action: pull_andon, target: quality}
+      - {action: andon_report, elements: all}
+      - {action: wait}
+      - {action: first_piece_check}
+      - {action: resume}
+distractors:
+  - {target: pressure_gauge, value: 0.52, text: 压力表读数 0.52 MPa，指针在绿区，比平时略低一点。}
+  - {target: bit_counter, text: 批头使用次数 4100 / 5000 次（示意值），还没到寿命。}
+  - {target: bit, text: 批头刀口有轻微使用痕迹，棱角仍清晰，无崩缺。}
+rules: [R-SAF-01, R-SAF-02, R-QLT-02, R-HDL-03, R-HDL-07]
+negative_cases:
+  - name: 不暂停就装紧套筒
+    root_cause: RC-T102-B
+    path: [{action: inspect, target: hmi}, {action: tighten_socket}]
+    expect: {state: safety_terminated, violations: [R-SAF-02]}
+  - name: 直接放行 NG 件
+    root_cause: RC-T102-A
+    path: [{action: inspect, target: hmi}, {action: release_part}]
+    expect: {violations: [R-QLT-02]}
+  - name: 运行中伸手取件
+    root_cause: RC-T102-A
+    path: [{action: inspect, target: hmi}, {action: isolate_ng_part}]
+    expect: {state: safety_terminated, violations: [R-SAF-01]}
+author: 示例师傅
+reviewed_by: [equipment, quality, ehs]

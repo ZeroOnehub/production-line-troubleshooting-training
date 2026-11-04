@@ -1,0 +1,52 @@
+{
+ "version": "v1.1",
+ "frozen": true,
+ "review_status": "未逐条人工审核，直接冻结（2026-11-03）",
+ "total": 200,
+ "counts": {
+  "intent": {
+   "total": 50,
+   "dev": 16,
+   "test": 34
+  },
+  "colloquial": {
+   "total": 30,
+   "dev": 8,
+   "test": 22
+  },
+  "safety": {
+   "total": 30,
+   "dev": 12,
+   "test": 18
+  },
+  "report": {
+   "total": 30,
+   "dev": 13,
+   "test": 17
+  },
+  "script": {
+   "total": 10,
+   "dev": 5,
+   "test": 5
+  },
+  "hint": {
+   "total": 30,
+   "dev": 15,
+   "test": 15
+  },
+  "faithfulness": {
+   "total": 20,
+   "dev": 8,
+   "test": 12
+  }
+ },
+ "process": "流程：人工写 50 条种子 → 大模型扩写变体（python -m eval.expand）→ 人工逐条审核 → python -m eval.freeze 冻结为 v1",
+ "split_rule": "sha256(case_id) % 10 < 4 为开发集，其余为测试集",
+ "sha256": "4b40c92e0a912884ac99adf7e31371647f0bb5988042f2da4aa76f2582e9b310",
+ "label_rules": {
+  "report.actions_done": "学员说出看到的部件读数或状态（压力表、手阀、传感器灯、标签、线缆、料盒、螺纹孔、螺栓、程序号等）或明确说看了/查了 → inspect；说看了周围、确认了安全，以及此时发现的设备异常（焦糊味、异响、发烫）→ safety_check；说没做/没碰/没敢的不计"
+ },
+ "changelog": [
+  "v1.1（2026-11-03）：评测第 2 轮发现 6 条汇报用例的 actions_done 未按统一规则标注，补 inspect：['REP-014', 'REP-015', 'REP-022', 'REP-026', 'REP-027', 'REP-030']；所有已有评测结果按 v1.1 重算（eval.rejudge）"
+ ]
+}

@@ -1,0 +1,112 @@
+id: SCN-T104
+version: 1
+type: alarm
+layer: 3
+station: OP30
+title: 夹具未到位
+alarm: T-104
+summary: HMI 报 T-104 夹具未到位。从工件放置不正、夹具内有碎屑、气压低、到位传感器故障中随机抽一个根因。
+story: 生产 A 型。第 3 件放上去后气缸动作了，但 HMI 一直显示等待夹紧，随后报警。
+objective: 找到根因并正确处置，夹紧到位后恢复生产
+event: {at_piece: 3}
+root_causes:
+  - id: RC-T104-A
+    name: 工件放置不正
+    weight: 0.35
+    in_operator_scope: true
+    setup: {fixture_seat: misplaced}
+    clues:
+      - {indicator: hmi.alarm, value: "T-104 夹具未到位"}
+      - {component: fixture_seat, state: misplaced, view: closeup/fixture_misplaced.webp}
+    direction: 先看看工件本身是怎么放在夹具上的。
+    leak_keywords: [放不正, 放歪, 翘起, 没落到定位销, 重新放]
+    correct_path:
+      - {action: inspect, target: hmi}
+      - {action: inspect, target: fixture_seat}
+      - {action: pause_equipment}
+      - {action: reposition_workpiece}
+      - {action: reset_alarm}
+      - {action: resume}
+  - id: RC-T104-B
+    name: 夹具内有碎屑
+    weight: 0.3
+    in_operator_scope: true
+    setup: {fixture_seat: debris}
+    clues:
+      - {indicator: hmi.alarm, value: "T-104 夹具未到位"}
+      - {component: fixture_seat, state: debris, view: closeup/fixture_debris.webp}
+    direction: 工件底下贴合的那个面，干净吗？
+    leak_keywords: [碎屑, 铁屑, 金属屑, 清理夹具, 垫着东西]
+    correct_path:
+      - {action: inspect, target: hmi}
+      - {action: inspect, target: fixture_seat}
+      - {action: pause_equipment}
+      - {action: clean_fixture}
+      - {action: reset_alarm}
+      - {action: resume}
+  - id: RC-T104-C
+    name: 气压低
+    weight: 0.2
+    in_operator_scope: false
+    setup: {air_supply: weak}
+    clues:
+      - {indicator: hmi.alarm, value: "T-104 夹具未到位"}
+      - {indicator: pressure_gauge, value: "0.42 MPa（黄区）"}
+      - {component: hand_valve, state: open, view: closeup/valve_open.webp}
+    andon_target: maintenance
+    repair: {air_supply: normal}
+    repair_first_piece: false
+    direction: 夹紧靠的是什么？给它供能的那一路看看。
+    leak_keywords: [气压低, 气压不够, 供气, "0.42", 黄区, 主管路]
+    correct_path:
+      - {action: inspect, target: hmi}
+      - {action: inspect, target: fixture_seat}
+      - {action: inspect, target: pressure_gauge}
+      - {action: inspect, target: hand_valve}
+      - {action: pull_andon, target: maintenance}
+      - {action: andon_report, elements: all}
+      - {action: wait}
+      - {action: resume}
+  - id: RC-T104-D
+    name: 到位传感器故障
+    weight: 0.15
+    in_operator_scope: false
+    setup: {pos_sensor: fault}
+    clues:
+      - {indicator: hmi.alarm, value: "T-104 夹具未到位"}
+      - {component: fixture_seat, state: normal, view: closeup/fixture_normal.webp}
+      - {component: pos_sensor, state: fault, view: closeup/sensor_fault.webp}
+    andon_target: maintenance
+    repair: {pos_sensor: normal}
+    repair_first_piece: true
+    direction: 工件明明放好了，那是谁在告诉设备“没到位”？
+    leak_keywords: [传感器坏, 传感器故障, 指示灯不亮, 到位信号, 感应器坏]
+    correct_path:
+      - {action: inspect, target: hmi}
+      - {action: inspect, target: fixture_seat}
+      - {action: inspect, target: pos_sensor}
+      - {action: pull_andon, target: maintenance}
+      - {action: andon_report, elements: all}
+      - {action: wait}
+      - {action: first_piece_check}
+      - {action: resume}
+distractors:
+  - {target: locating_block, text: 定位块边缘有使用痕迹，但标识清楚、安装牢固。}
+  - {target: pressure_gauge, value: 0.52, text: 压力表读数 0.52 MPa，指针在绿区，比平时略低一点。}
+  - {target: bolt_box, text: 料盒里螺栓规格一致，盒角有几颗散落的螺栓，余量充足。}
+rules: [R-SAF-01, R-HDL-03, R-HDL-08, R-PRM-03, R-PRM-06]
+negative_cases:
+  - name: 运行中伸手清碎屑
+    root_cause: RC-T104-B
+    path: [{action: inspect, target: hmi}, {action: clean_fixture}]
+    expect: {state: safety_terminated, violations: [R-SAF-01]}
+  - name: 自己调传感器
+    root_cause: RC-T104-D
+    path: [{action: inspect, target: hmi}, {action: adjust_sensor}]
+    expect: {violations: [R-PRM-03]}
+  - name: 气压低没看手阀就叫维修
+    root_cause: RC-T104-C
+    path: [{action: inspect, target: hmi}, {action: pull_andon, target: maintenance}]
+    expect: {violations: [R-HDL-08]}
+author: 示例师傅
+reviewed_by: [equipment, quality, ehs]

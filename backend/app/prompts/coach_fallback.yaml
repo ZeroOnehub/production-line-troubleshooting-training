@@ -1,0 +1,19 @@
+# 规则降级模式下带班师傅的提示模板（模型不可用时使用）。级别含义与 coach.md 相同。
+version: 1
+level1:
+  no_alarm_view: 报警出来了，屏幕上写的是什么？先看清楚再动手。
+  investigating: 这个报警一般有好几种原因，你打算先排除哪一个？
+  unsafe_mode: 你要动手之前，设备现在是什么状态？
+  andon_waiting: 等人的时候，手头还有没有该做的？
+  recovery: 弄好了怎么证明真的好了？
+  normal: 设备正常的时候，你注意看哪几样东西？
+  checklist: 点检表上还有哪几项没查？
+  changeover: 换型清单上的几步，你都做了吗？
+  tour: 还有哪些东西你没认全？
+level2:
+  out_of_scope: 这个你自己处理不了，想想该找谁、电话里要说清哪几件事。
+  default: 先别急着复位，去{equipment}那边仔细看看。
+  checklist: 按点检表的顺序，下一项该查{item}了。
+  changeover: 换型清单再对一遍，看看哪一步没做。
+  tour: 再去{target}那边看看。
+level3_prefix: 我给你做个示范：

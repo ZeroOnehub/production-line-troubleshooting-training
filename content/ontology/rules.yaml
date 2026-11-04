@@ -1,0 +1,598 @@
+# 业务本体 · 规则清单（全部为虚构示例）
+# 一条规则 = 师傅原话 → 可执行写法 → 引擎可判定的触发条件与结论。
+#   trigger.kind: action（动作执行前判定）| event（引擎事件发生时判定）
+#   trigger 的匹配项：actions 动作列表 / zone 作业区域 / categories 动作类别 / event 事件名
+#   when: 条件（写法同 alarms.yaml）；为空表示只要触发即成立
+#   outcome: terminate 安全终止（一票否决）| fail 判定本局失败但继续 | reject 拒绝执行并记录 | violation 执行并记录
+#   severity: veto 一票否决 / major 严重 / minor 一般
+#   dimension: 扣分维度（safety 安全 / quality 质量 / efficiency 效率 / communication 沟通）
+#   once: episode 每次异常只记一次 / session 每局只记一次 / every 每次都记
+#   tag: 薄弱点标签（取自 scoring.yaml 的固定枚举）
+version: 1
+
+rules:
+  # ======================= 安全（一票否决与严重） =======================
+  - id: R-SAF-01
+    type: 安全
+    quote: 手别往夹具里伸
+    executable: 夹具区域内的任何动作，前置条件是设备处于暂停或急停状态；否则判定安全违规，训练局安全终止
+    trigger: {kind: action, zone: fixture}
+    when: {fact: safe_mode, eq: false}
+    outcome: terminate
+    severity: veto
+    dimension: safety
+    deduction: 100
+    once: every
+    tag: 停机再动手
+    actions: [clean_fixture, reposition_workpiece, isolate_ng_part, replace_locating_block]
+    source: 师傅经验
+    confirmed_by: EHS 工程师
+  - id: R-SAF-02
+    type: 安全
+    quote: 换批头、动套筒之前先把枪停了
+    executable: 拧紧枪刀具（批头、套筒）上的任何动作，前置条件是设备处于暂停或急停状态；否则安全终止
+    trigger: {kind: action, zone: tool}
+    when: {fact: safe_mode, eq: false}
+    outcome: terminate
+    severity: veto
+    dimension: safety
+    deduction: 100
+    once: every
+    tag: 停机再动手
+    actions: [replace_bit, tighten_socket]
+    source: 安全规范
+    confirmed_by: EHS 工程师
+  - id: R-SAF-03
+    type: 安全
+    quote: 光栅、急停这些东西，谁也不能屏蔽
+    executable: 执行“屏蔽安全装置”即判定安全违规，训练局安全终止
+    trigger: {kind: action, actions: [bypass_safety]}
+    when: null
+    outcome: terminate
+    severity: veto
+    dimension: safety
+    deduction: 100
+    once: every
+    tag: 安全装置
+    actions: [bypass_safety]
+    source: 安全规范
+    confirmed_by: EHS 工程师
+  - id: R-SAF-04
+    type: 安全
+    quote: 急停复位之前先看一圈
+    executable: 复位急停前，本次急停之后必须执行过“确认周边安全”；否则记严重安全违规
+    trigger: {kind: action, actions: [release_estop]}
+    when: {fact: safety_checked, eq: false}
+    outcome: violation
+    severity: major
+    dimension: safety
+    deduction: 40
+    once: episode
+    tag: 急停处置
+    actions: [release_estop, safety_check]
+    source: SOP
+    confirmed_by: EHS 工程师
+  - id: R-SAF-05
+    type: 安全
+    quote: 设备冒烟冒味的，急停千万别松
+    executable: 拧紧枪枪身处于异常（异味、发烫、异响）时复位急停，判定安全违规，训练局安全终止
+    trigger: {kind: action, actions: [release_estop]}
+    when: {fact: gun_motor, eq: abnormal}
+    outcome: terminate
+    severity: veto
+    dimension: safety
+    deduction: 100
+    once: every
+    tag: 急停处置
+    actions: [release_estop]
+    source: 师傅经验
+    confirmed_by: EHS 工程师
+  - id: R-SAF-06
+    type: 安全
+    quote: 急停不好使，这台设备就不能开
+    executable: 急停功能失效未修复时启动生产（恢复生产 / 继续生产 / 首件），判定安全违规，训练局安全终止
+    trigger: {kind: action, actions: [resume, run_production, first_piece_check]}
+    when: {fact: estop_function, eq: fault}
+    outcome: terminate
+    severity: veto
+    dimension: safety
+    deduction: 100
+    once: every
+    tag: 安全装置
+    actions: [test_estop, resume]
+    source: 安全规范
+    confirmed_by: EHS 工程师
+  - id: R-SAF-07
+    type: 安全
+    quote: 光栅挡了不停，就不能干活
+    executable: 光栅功能失效未修复时启动生产，判定安全违规，训练局安全终止
+    trigger: {kind: action, actions: [resume, run_production, first_piece_check]}
+    when: {fact: curtain_function, eq: fault}
+    outcome: terminate
+    severity: veto
+    dimension: safety
+    deduction: 100
+    once: every
+    tag: 安全装置
+    actions: [test_light_curtain, resume]
+    source: 安全规范
+    confirmed_by: EHS 工程师
+  - id: R-SAF-08
+    type: 安全
+    quote: 擦光栅也得先停机
+    executable: 清洁光栅镜面前，设备必须处于暂停或急停状态；否则记严重安全违规
+    trigger: {kind: action, zone: curtain}
+    when: {fact: safe_mode, eq: false}
+    outcome: violation
+    severity: major
+    dimension: safety
+    deduction: 40
+    once: every
+    tag: 停机再动手
+    actions: [clean_curtain_mirror]
+    source: SOP
+    confirmed_by: EHS 工程师
+
+  # ======================= 处置 =======================
+  - id: R-HDL-01
+    type: 处置
+    quote: 报警出来先看清是什么报警，再动手
+    executable: 异常发生后，第一次处置类动作之前必须查看过 HMI 报警；否则记一次处置错误
+    trigger: {kind: action, categories: [handle]}
+    when:
+      all:
+        - {fact: in_abnormal, eq: true}
+        - {fact: alarm_viewed, eq: false}
+    outcome: violation
+    severity: minor
+    dimension: efficiency
+    deduction: 10
+    once: episode
+    tag: 报警识别
+    actions: [inspect]
+    source: 师傅经验
+    confirmed_by: 带班师傅
+  - id: R-HDL-02
+    type: 处置
+    quote: 别上来就按复位，先看看是什么问题
+    executable: 异常发生后，没有做过任何查看就复位报警（或重新扫码），记一次处置错误
+    trigger: {kind: action, actions: [reset_alarm, rescan]}
+    when:
+      all:
+        - {fact: in_abnormal, eq: true}
+        - {fact: inspected_any, eq: false}
+    outcome: violation
+    severity: minor
+    dimension: efficiency
+    deduction: 10
+    once: episode
+    tag: 根因排查
+    actions: [reset_alarm, rescan]
+    source: 师傅经验
+    confirmed_by: 带班师傅
+  - id: R-HDL-03
+    type: 处置
+    quote: 复位两三次还报就别弄了
+    executable: 同一报警在本局内复位后再次出现达到 2 次，下一步唯一正确动作是拉 Andon；继续复位记为处置错误
+    trigger: {kind: action, actions: [reset_alarm, rescan]}
+    when:
+      all:
+        - {fact: recurrence, gte: 2}
+        - {fact: andon_pulled, eq: false}
+    outcome: violation
+    severity: major
+    dimension: efficiency
+    deduction: 30
+    once: every
+    tag: 升级判断
+    actions: [reset_alarm, pull_andon]
+    source: 师傅经验
+    confirmed_by: 设备工程师
+  - id: R-HDL-04
+    type: 处置
+    quote: 自己能弄的先自己弄，别动不动就拉 Andon
+    executable: 根因在操作工权限内、且报警复现不足 2 次时拉 Andon，记一次不必要升级
+    trigger: {kind: action, actions: [pull_andon]}
+    when:
+      all:
+        - {fact: in_abnormal, eq: true}
+        - {fact: rc_in_scope, eq: true}
+        - {fact: recurrence, lt: 2}
+    outcome: violation
+    severity: minor
+    dimension: communication
+    deduction: 20
+    once: episode
+    tag: 升级判断
+    actions: [pull_andon]
+    source: 师傅经验
+    confirmed_by: 带班师傅
+  - id: R-HDL-05
+    type: 处置
+    quote: 叫人要叫对人
+    executable: Andon 呼叫对象与根因的处理角色不符（如螺栓混料叫了维修），到场后被退回，记严重处置错误
+    trigger: {kind: event, event: andon_arrival}
+    when: {fact: target_correct, eq: false}
+    outcome: violation
+    severity: major
+    dimension: communication
+    deduction: 30
+    once: every
+    tag: 升级判断
+    actions: [pull_andon]
+    source: SOP
+    confirmed_by: 设备工程师
+  - id: R-HDL-06
+    type: 处置
+    quote: 换型先停线，别边干边换
+    executable: 设备运行中进行换型操作（HMI 改型号/程序号、换螺栓料盒），记严重处置错误
+    trigger: {kind: action, actions: [hmi_select_variant, hmi_select_program, replace_bolt_box]}
+    when: {fact: mode, eq: running}
+    outcome: violation
+    severity: major
+    dimension: quality
+    deduction: 20
+    once: every
+    tag: 换型规范
+    actions: [hmi_select_variant, hmi_select_program, replace_bolt_box]
+    source: SOP
+    confirmed_by: 质量工程师
+  - id: R-HDL-07
+    type: 处置
+    quote: 换完批头先打个首件
+    executable: 更换批头（以及装紧套筒、换型、维修处置）后的下一件为首件，必须执行首件确认；否则后续工件全部记为未确认
+    trigger: {kind: event, event: cycle_start}
+    when:
+      all:
+        - {fact: first_piece_pending, eq: true}
+        - {fact: first_piece_mode, eq: false}
+    outcome: violation
+    severity: major
+    dimension: quality
+    deduction: 30
+    once: episode
+    tag: 首件确认
+    actions: [replace_bit, first_piece_check]
+    source: 师傅经验
+    confirmed_by: 质量工程师
+  - id: R-HDL-08
+    type: 处置
+    quote: 气压低先看看自己的手阀开没开
+    executable: 气压偏低的报警（T-107、气压原因的 T-104），没查看工位手阀就叫维修，记一次处置错误
+    trigger: {kind: action, actions: [pull_andon]}
+    when:
+      all:
+        - {fact: pressure_low, eq: true}
+        - {fact: hand_valve_inspected, eq: false}
+    outcome: violation
+    severity: minor
+    dimension: efficiency
+    deduction: 15
+    once: episode
+    tag: 根因排查
+    actions: [inspect, open_hand_valve, pull_andon]
+    source: 师傅经验
+    confirmed_by: 设备工程师
+  - id: R-HDL-09
+    type: 处置
+    quote: 通讯断了，按复位没用，别瞎按
+    executable: 拧紧控制器通讯中断（T-108）时复位报警，记一次处置错误
+    trigger: {kind: action, actions: [reset_alarm]}
+    when: {fact: alarm, eq: T-108}
+    outcome: violation
+    severity: minor
+    dimension: efficiency
+    deduction: 10
+    once: episode
+    tag: 升级判断
+    actions: [reset_alarm]
+    source: 师傅经验
+    confirmed_by: 设备工程师
+  - id: R-HDL-10
+    type: 处置
+    quote: 缺料也不能拿别的型号的螺栓凑
+    executable: 换上的螺栓料盒型号与当前生产型号不符，记严重处置错误
+    trigger: {kind: action, actions: [replace_bolt_box]}
+    when: {fact: param_variant_matches_order, eq: false}
+    outcome: violation
+    severity: major
+    dimension: quality
+    deduction: 30
+    once: every
+    tag: 换型规范
+    actions: [replace_bolt_box]
+    source: SOP
+    confirmed_by: 质量工程师
+  - id: R-HDL-11
+    type: 处置
+    quote: 换型按清单来，一步都不能落
+    executable: 换型后的首件验证中触发报警（漏了换型步骤），记一次处置错误
+    trigger: {kind: event, event: alarm_triggered}
+    when: {fact: changeover_verifying, eq: true}
+    outcome: violation
+    severity: minor
+    dimension: efficiency
+    deduction: 15
+    once: every
+    tag: 换型规范
+    actions: [hmi_select_variant, hmi_select_program, replace_locating_block, replace_bolt_box]
+    source: SOP
+    confirmed_by: 质量工程师
+
+  # ======================= 质量 =======================
+  - id: R-QLT-01
+    type: 质量
+    quote: 换型首件要质量员签字
+    executable: 换型后首件确认合格，还必须请质量员确认签字，才能恢复批量生产；否则记严重质量违规
+    trigger: {kind: action, actions: [resume, run_production]}
+    when: {fact: changeover_quality_pending, eq: true}
+    outcome: violation
+    severity: major
+    dimension: quality
+    deduction: 30
+    once: episode
+    tag: 首件确认
+    actions: [call_quality_confirm, resume]
+    source: SOP
+    confirmed_by: 质量工程师
+  - id: R-QLT-02
+    type: 质量
+    quote: NG 件不能回线
+    executable: 拧紧结果为 NG 的工件（以及防错报警的型号不符件），必须放入红色 NG 料箱并贴 NG 标签；未隔离即放行，判定为 NG 流出
+    trigger: {kind: event, event: piece_released}
+    when:
+      any:
+        - {fact: piece_is_ng, eq: true}
+        - {fact: piece_nonconforming, eq: true}
+    outcome: fail
+    severity: veto
+    dimension: quality
+    deduction: 100
+    once: every
+    tag: NG 隔离
+    actions: [isolate_ng_part, resume, release_part]
+    source: 师傅经验
+    confirmed_by: 质量工程师
+  - id: R-QLT-03
+    type: 质量
+    quote: 发现混料，整盒都要隔离
+    executable: 螺栓料盒混料时，在首件、恢复生产或拉 Andon 之前必须先隔离料盒；否则记严重质量违规
+    trigger: {kind: action, actions: [first_piece_check, resume, pull_andon]}
+    when:
+      all:
+        - {fact: bolt_box, eq: mixed}
+        - {fact: bolt_box_isolated, eq: false}
+    outcome: violation
+    severity: major
+    dimension: quality
+    deduction: 30
+    once: episode
+    tag: NG 隔离
+    actions: [isolate_bolt_box]
+    source: SOP
+    confirmed_by: 质量工程师
+  - id: R-QLT-04
+    type: 质量
+    quote: 点检记录不能先签字后检查
+    executable: 8 项点检未全部记录就签字，记严重质量违规
+    trigger: {kind: action, actions: [sign_checklist]}
+    when: {fact: checklist_all_recorded, eq: false}
+    outcome: violation
+    severity: major
+    dimension: quality
+    deduction: 30
+    once: session
+    tag: 点检规范
+    actions: [sign_checklist]
+    source: SOP
+    confirmed_by: 质量工程师
+  - id: R-QLT-05
+    type: 质量
+    quote: 没看过的不能打勾
+    executable: 某点检项没有执行对应的查看或测试就填写记录，记严重质量违规
+    trigger: {kind: action, actions: [record_check]}
+    when: {fact: item_checked, eq: false}
+    outcome: violation
+    severity: major
+    dimension: quality
+    deduction: 30
+    once: every
+    tag: 点检规范
+    actions: [record_check]
+    source: 师傅经验
+    confirmed_by: 质量工程师
+  - id: R-QLT-06
+    type: 质量
+    quote: 有毛病就如实记，不能写正常
+    executable: 有异常的点检项记为“正常”，判定漏检，记严重质量违规
+    trigger: {kind: action, actions: [record_check]}
+    when:
+      all:
+        - {fact: item_had_fault, eq: true}
+        - {fact: param_result, eq: ok}
+    outcome: violation
+    severity: major
+    dimension: quality
+    deduction: 30
+    once: every
+    tag: 点检规范
+    actions: [record_check]
+    source: SOP
+    confirmed_by: 质量工程师
+  - id: R-QLT-07
+    type: 质量
+    quote: 点检没做完、异常没处理完，不能开机
+    executable: 开班点检未签字，或仍有未处理的异常项时启动生产，记严重质量违规
+    trigger: {kind: action, actions: [resume, run_production, first_piece_check]}
+    when:
+      all:
+        - {fact: is_checklist, eq: true}
+        - any:
+            - {fact: checklist_signed, eq: false}
+            - {fact: checklist_unresolved, gte: 1}
+    outcome: violation
+    severity: major
+    dimension: quality
+    deduction: 30
+    once: session
+    tag: 点检规范
+    actions: [sign_checklist, resume]
+    source: SOP
+    confirmed_by: 质量工程师
+
+  # ======================= 权限 =======================
+  - id: R-PRM-01
+    type: 权限
+    quote: 电气柜不是你开的
+    executable: 操作工角色执行“打开电气柜”被拒绝，提示越权并记一次越权尝试
+    trigger: {kind: action, actions: [open_electrical_cabinet]}
+    when: null
+    outcome: reject
+    severity: minor
+    dimension: safety
+    deduction: 15
+    once: every
+    tag: 越权操作
+    actions: [open_electrical_cabinet]
+    source: 安全规范
+    confirmed_by: EHS 工程师
+  - id: R-PRM-02
+    type: 权限
+    quote: 程序和参数谁让你改的
+    executable: 操作工角色执行“修改程序和参数”被拒绝，记一次越权尝试
+    trigger: {kind: action, actions: [modify_program_params]}
+    when: null
+    outcome: reject
+    severity: minor
+    dimension: safety
+    deduction: 15
+    once: every
+    tag: 越权操作
+    actions: [modify_program_params]
+    source: SOP
+    confirmed_by: 设备工程师
+  - id: R-PRM-03
+    type: 权限
+    quote: 传感器别乱调
+    executable: 操作工角色执行“调整传感器”（含光栅对位）被拒绝，记一次越权尝试
+    trigger: {kind: action, actions: [adjust_sensor]}
+    when: null
+    outcome: reject
+    severity: minor
+    dimension: safety
+    deduction: 15
+    once: every
+    tag: 越权操作
+    actions: [adjust_sensor]
+    source: 师傅经验
+    confirmed_by: 设备工程师
+  - id: R-PRM-04
+    type: 权限
+    quote: 设备不能拆
+    executable: 操作工角色执行“拆机”被拒绝，记一次越权尝试
+    trigger: {kind: action, actions: [disassemble_equipment]}
+    when: null
+    outcome: reject
+    severity: minor
+    dimension: safety
+    deduction: 15
+    once: every
+    tag: 越权操作
+    actions: [disassemble_equipment]
+    source: 安全规范
+    confirmed_by: EHS 工程师
+  - id: R-PRM-05
+    type: 权限
+    quote: 电线插头别动
+    executable: 操作工角色执行“插拔线缆”被拒绝，记一次越权尝试；扫码枪线缆、控制器通讯线都由维修处理
+    trigger: {kind: action, actions: [reconnect_cable]}
+    when: null
+    outcome: reject
+    severity: minor
+    dimension: safety
+    deduction: 15
+    once: every
+    tag: 越权操作
+    actions: [reconnect_cable]
+    source: 安全规范
+    confirmed_by: EHS 工程师
+  - id: R-PRM-06
+    type: 权限
+    quote: 调压阀不归你调，你只管开关手阀
+    executable: 操作工角色执行“调节调压阀”被拒绝，记一次越权尝试
+    trigger: {kind: action, actions: [adjust_regulator]}
+    when: null
+    outcome: reject
+    severity: minor
+    dimension: safety
+    deduction: 15
+    once: every
+    tag: 越权操作
+    actions: [adjust_regulator, open_hand_valve]
+    source: SOP
+    confirmed_by: 设备工程师
+  - id: R-PRM-07
+    type: 权限
+    quote: 维护页面不是你进的
+    executable: 操作工角色执行“进入 HMI 维护页面”被拒绝，记一次越权尝试
+    trigger: {kind: action, actions: [hmi_enter_maintenance]}
+    when: null
+    outcome: reject
+    severity: minor
+    dimension: safety
+    deduction: 15
+    once: every
+    tag: 越权操作
+    actions: [hmi_enter_maintenance]
+    source: SOP
+    confirmed_by: 设备工程师
+  - id: R-PRM-08
+    type: 权限
+    quote: 不是换型，型号和程序号别动
+    executable: 没有换型指令、或已出现防错报警（T-106）时，在 HMI 上改型号或程序号被拒绝，记一次越权尝试；型号和程序号问题叫班组长
+    trigger: {kind: action, actions: [hmi_select_variant, hmi_select_program]}
+    when:
+      any:
+        - {fact: changeover_active, eq: false}
+        - {fact: alarm, eq: T-106}
+    outcome: reject
+    severity: minor
+    dimension: quality
+    deduction: 15
+    once: every
+    tag: 越权操作
+    actions: [hmi_select_variant, hmi_select_program]
+    source: SOP
+    confirmed_by: 质量工程师
+
+  # ======================= 沟通 =======================
+  - id: R-COM-01
+    type: 沟通
+    quote: 电话里说清四件事：哪个工位、什么报警、做了什么、隔离了几件
+    executable: Andon 汇报的要素覆盖率低于 75%，记一次汇报不完整（扣分已体现在沟通维度的覆盖率得分中）
+    trigger: {kind: event, event: andon_reported}
+    when: {fact: coverage, lt: 0.75}
+    outcome: violation
+    severity: minor
+    dimension: communication
+    deduction: 0
+    once: episode
+    tag: 汇报完整
+    actions: [andon_report]
+    source: SOP
+    confirmed_by: 设备工程师
+  - id: R-COM-02
+    type: 沟通
+    quote: NG 数要报准，不能估
+    executable: 汇报中的 NG 数量与实际不符，记一次汇报不准确（该要素按未覆盖计）
+    trigger: {kind: event, event: andon_reported}
+    when: {fact: ng_count_wrong, eq: true}
+    outcome: violation
+    severity: minor
+    dimension: communication
+    deduction: 0
+    once: episode
+    tag: 汇报完整
+    actions: [andon_report]
+    source: 师傅经验
+    confirmed_by: 质量工程师

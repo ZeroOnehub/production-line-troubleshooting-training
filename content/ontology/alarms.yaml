@@ -1,0 +1,118 @@
+# 业务本体 · 报警定义（虚构编码）。
+# 报警由引擎在工作循环的各个阶段按“触发条件”判定产生——根因只改变部件状态，报警从状态中“长”出来，
+# 所以换型漏步、上一个班里的随机事件和单个异常关卡共用同一套判定。
+# 循环阶段顺序：pre（循环前检查）→ load（上件）→ scan（扫码）→ verify（防错）→ clamp（夹紧）→ tighten（拧紧）→ judge（判定）
+# 条件写法：{fact: <事实名>, eq|ne|in|lt|gte: 值}；any / all 组合。可用事实见 backend/app/engine/。
+version: 1
+
+alarms:
+  - code: T-101
+    text: 拧紧扭矩低
+    level: 2
+    stage: tighten
+    tighten_result: torque_low
+    makes_ng: true
+    root_causes: [RC-T101-A, RC-T101-B, RC-T101-C]
+    trigger:
+      any:
+        - {fact: bit, eq: worn}
+        - {fact: bolt_box, eq: mixed}
+        - {fact: program_mismatch, eq: true}
+        - {fact: bolt_variant_mismatch, eq: true}
+  - code: T-102
+    text: 拧紧角度超差
+    level: 2
+    stage: tighten
+    tighten_result: angle_out
+    makes_ng: true
+    root_causes: [RC-T102-A, RC-T102-B, RC-T102-C]
+    trigger:
+      any:
+        - {fact: bolt_seat, eq: cross_threaded}
+        - {fact: socket, eq: loose}
+        - {fact: thread_hole, eq: debris}
+  - code: T-103
+    text: 扫码失败
+    level: 1
+    stage: scan
+    makes_ng: false
+    root_causes: [RC-T103-A, RC-T103-B, RC-T103-C]
+    trigger:
+      any:
+        - {fact: scan_window, eq: dirty}
+        - {fact: label, eq: damaged}
+        - {fact: scanner_cable, eq: loose}
+  - code: T-104
+    text: 夹具未到位
+    level: 2
+    stage: clamp
+    makes_ng: false
+    root_causes: [RC-T104-A, RC-T104-B, RC-T104-C, RC-T104-D]
+    trigger:
+      any:
+        - {fact: fixture_seat, in: [debris, misplaced]}
+        - {fact: pos_sensor, eq: fault}
+        - {fact: clamp_pressure_low, eq: true}
+        - {fact: block_mismatch, eq: true}
+  - code: T-105
+    text: 安全光栅中断
+    level: 3
+    stage: pre
+    makes_ng: false
+    root_causes: [RC-T105-A, RC-T105-B, RC-T105-C]
+    trigger:
+      any:
+        - {fact: curtain_zone, eq: blocked}
+        - {fact: curtain_mirror, in: [dirty, misaligned]}
+  - code: T-106
+    text: 防错：型号不符
+    level: 2
+    stage: verify
+    makes_ng: false
+    nonconforming: true          # 工件与当前型号不符，必须隔离，不得流入下游
+    root_causes: [RC-T106-A, RC-T106-B]
+    trigger:
+      any:
+        - {fact: hmi_variant_mismatch, eq: true}
+  - code: T-107
+    text: 气源压力低
+    level: 2
+    stage: pre
+    makes_ng: false
+    root_causes: [RC-T107-A, RC-T107-B]
+    trigger:
+      any:
+        - {fact: pressure_red, eq: true}
+  - code: T-108
+    text: 拧紧控制器通讯中断
+    level: 3
+    stage: pre
+    makes_ng: false
+    root_causes: [RC-T108-A, RC-T108-B]
+    trigger:
+      any:
+        - {fact: controller_link, in: [cable_loose, module_fault]}
+  - code: T-109
+    text: 螺栓缺料
+    level: 1
+    stage: load
+    makes_ng: false
+    root_causes: [RC-T109-A, RC-T109-B]
+    trigger:
+      any:
+        - {fact: bolt_box, eq: low}
+        - {fact: bolt_level_sensor, eq: false_alarm}
+        - {fact: bolt_box_isolated, eq: true}     # 料盒被隔离后工位上没有螺栓
+  - code: T-110
+    text: 急停被按下
+    level: 3
+    stage: pre
+    makes_ng: false
+    root_causes: [RC-T110-A, RC-T110-B]
+    trigger:
+      any:
+        - {fact: estop_button, eq: pressed}
+
+# 判定优先级：同一阶段多个报警同时满足时，取列表中靠前的那个；不同阶段按循环顺序。
+stage_order: [pre, load, scan, verify, clamp, tighten, judge]
+pre_order: [T-110, T-108, T-107, T-105]

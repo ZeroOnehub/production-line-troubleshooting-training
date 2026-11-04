@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="560" height="208" font-family="sans-serif" font-size="12">
+<rect width="100%" height="100%" fill="#12161b"/>
+<text x="10" y="20" fill="#d9e1e8" font-weight="bold">响应时间 P95（文字单轮）</text>
+<text x="10" y="46" fill="#8a97a5">rule-baseline</text>
+<rect x="170" y="34" width="0.2" height="16" fill="#36b3c9"/>
+<text x="176.2" y="46" fill="#d9e1e8">4 ms</text>
+<text x="10" y="74" fill="#8a97a5">qwen3.6-27b</text>
+<rect x="170" y="62" width="224.7" height="16" fill="#36b3c9"/>
+<text x="400.7" y="74" fill="#d9e1e8">4241 ms</text>
+<text x="10" y="102" fill="#8a97a5">qwen3.6-35b-a3b</text>
+<rect x="170" y="90" width="136.7" height="16" fill="#36b3c9"/>
+<text x="312.7" y="102" fill="#d9e1e8">2579 ms</text>
+<text x="10" y="130" fill="#8a97a5">deepseek-v4-flash</text>
+<rect x="170" y="118" width="228.5" height="16" fill="#36b3c9"/>
+<text x="404.5" y="130" fill="#d9e1e8">4312 ms</text>
+<text x="10" y="158" fill="#8a97a5">qwen3.8-max</text>
+<rect x="170" y="146" width="193.4" height="16" fill="#36b3c9"/>
+<text x="369.4" y="158" fill="#d9e1e8">3649 ms</text>
+<text x="10" y="186" fill="#8a97a5">deepseek-v4-pro</text>
+<rect x="170" y="174" width="300.0" height="16" fill="#36b3c9"/>
+<text x="476.0" y="186" fill="#d9e1e8">5661 ms</text>
+<line x1="329.0" y1="28" x2="329.0" y2="204" stroke="#f2b233" stroke-dasharray="4 3"/>
+</svg>

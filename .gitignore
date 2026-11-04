@@ -1,0 +1,19 @@
+# 你的 API Key 在这里，不要提交
+.env
+
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.coverage
+htmlcov/
+node_modules/
+*.tsbuildinfo
+.DS_Store
+
+# 运行时产生的数据
+data/app.db
+data/app.db-*
+data/logs/
+data/test_recordings/
+eval/reports/_logs/

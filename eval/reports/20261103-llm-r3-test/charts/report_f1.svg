@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="560" height="208" font-family="sans-serif" font-size="12">
+<rect width="100%" height="100%" fill="#12161b"/>
+<text x="10" y="20" fill="#d9e1e8" font-weight="bold">要素抽取 F1</text>
+<text x="10" y="46" fill="#8a97a5">rule-baseline</text>
+<rect x="170" y="34" width="273.5" height="16" fill="#36b3c9"/>
+<text x="449.5" y="46" fill="#d9e1e8">91.2%</text>
+<text x="10" y="74" fill="#8a97a5">qwen3.6-27b</text>
+<rect x="170" y="62" width="291.0" height="16" fill="#36b3c9"/>
+<text x="467.0" y="74" fill="#d9e1e8">97.0%</text>
+<text x="10" y="102" fill="#8a97a5">qwen3.6-35b-a3b</text>
+<rect x="170" y="90" width="291.0" height="16" fill="#36b3c9"/>
+<text x="467.0" y="102" fill="#d9e1e8">97.0%</text>
+<text x="10" y="130" fill="#8a97a5">deepseek-v4-flash</text>
+<rect x="170" y="118" width="286.4" height="16" fill="#36b3c9"/>
+<text x="462.4" y="130" fill="#d9e1e8">95.5%</text>
+<text x="10" y="158" fill="#8a97a5">qwen3.8-max</text>
+<rect x="170" y="146" width="293.3" height="16" fill="#36b3c9"/>
+<text x="469.3" y="158" fill="#d9e1e8">97.8%</text>
+<text x="10" y="186" fill="#8a97a5">deepseek-v4-pro</text>
+<rect x="170" y="174" width="288.9" height="16" fill="#36b3c9"/>
+<text x="464.9" y="186" fill="#d9e1e8">96.3%</text>
+<line x1="440.0" y1="28" x2="440.0" y2="204" stroke="#f2b233" stroke-dasharray="4 3"/>
+</svg>

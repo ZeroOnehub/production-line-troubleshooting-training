@@ -1,0 +1,122 @@
+id: SCN-CHECK
+version: 1
+type: checklist
+layer: 2
+station: OP30
+title: 开班点检
+summary: 开班前完成 8 项点检。每局随机埋 1 到 2 个异常项，必须发现并正确处理，签字后开机打首件。
+story: 早班 7:50，设备还没开。按点检表把 8 项都过一遍，有问题当场处理，处理不了的叫人，全部做完签字再开机。
+objective: 8 项全部检查并如实记录；异常项全部处理；签字后首件合格并开机生产
+initial:
+  mode: stopped
+  first_piece_pending: true      # 开班第一件为首件
+pick_faults: {min: 1, max: 2}
+items:
+  - id: CK-01
+    name: 气压表读数
+    standard: 压力表指针在绿区（≥ 0.45 MPa，示意值）
+    check: [{action: inspect, target: pressure_gauge}]
+    faults:
+      - id: F-CK01
+        name: 工位手阀半开，气压偏低
+        setup: {hand_valve: half}
+        in_operator_scope: true
+        fix_path: [{action: inspect, target: hand_valve}, {action: open_hand_valve}, {action: inspect, target: pressure_gauge}]
+  - id: CK-02
+    name: 三色灯
+    standard: 灯测时红、黄、绿三色都亮
+    check: [{action: test_tower_light}]
+    faults:
+      - id: F-CK02
+        name: 三色灯黄灯不亮
+        setup: {tower_lamp: bulb_fault}
+        in_operator_scope: false
+        andon_target: maintenance
+        repair: {tower_lamp: normal}
+        fix_path: [{action: pull_andon, target: maintenance}, {action: andon_report, elements: all}, {action: wait}]
+  - id: CK-03
+    name: 急停功能
+    standard: 按下急停设备立即停止，复位后恢复
+    check: [{action: test_estop}]
+    faults:
+      - id: F-CK03
+        name: 急停功能失效
+        setup: {estop_function: fault}
+        in_operator_scope: false
+        andon_target: maintenance
+        repair: {estop_function: ok}
+        fix_path: [{action: pull_andon, target: maintenance}, {action: andon_report, elements: all}, {action: wait}]
+  - id: CK-04
+    name: 光栅功能
+    standard: 用测试棒遮挡光栅，设备立即停止
+    check: [{action: test_light_curtain}]
+    faults:
+      - id: F-CK04
+        name: 光栅功能失效
+        setup: {curtain_function: fault}
+        in_operator_scope: false
+        andon_target: maintenance
+        repair: {curtain_function: ok}
+        fix_path: [{action: pull_andon, target: maintenance}, {action: andon_report, elements: all}, {action: wait}]
+  - id: CK-05
+    name: 批头外观与使用次数
+    standard: 刀口无磨损，使用次数未超过寿命（示意值 5000 次）
+    check: [{action: inspect, target: bit}, {action: inspect, target: bit_counter}]
+    faults:
+      - id: F-CK05
+        name: 批头磨损
+        setup: {bit: worn}
+        in_operator_scope: true
+        fix_path: [{action: replace_bit}]
+  - id: CK-06
+    name: 套筒紧固
+    standard: 套筒安装到位，定位销卡紧
+    check: [{action: inspect, target: socket}]
+    faults:
+      - id: F-CK06
+        name: 套筒松动
+        setup: {socket: loose}
+        in_operator_scope: true
+        fix_path: [{action: tighten_socket}]
+  - id: CK-07
+    name: 扫码枪
+    standard: 扫码窗口干净，扫码正常
+    check: [{action: inspect, target: scan_window}]
+    faults:
+      - id: F-CK07
+        name: 扫码窗口脏污
+        setup: {scan_window: dirty}
+        in_operator_scope: true
+        fix_path: [{action: clean_scanner_window}]
+  - id: CK-08
+    name: 点检记录签字
+    standard: 前 7 项全部记录后签字
+    check: [{action: sign_checklist}]
+    sign_item: true
+    faults: []
+finish_path: [{action: first_piece_check}, {action: resume}]
+distractors:
+  - {target: pressure_gauge, value: 0.52, text: 压力表读数 0.52 MPa，指针在绿区，比平时略低一点。}
+  - {target: bit_counter, text: 批头使用次数 4100 / 5000 次（示意值），还没到寿命。}
+  - {target: socket, text: 套筒外表面有几道旧划痕，安装到位，定位销卡紧。}
+root_causes: []
+rules: [R-SAF-06, R-SAF-07, R-QLT-04, R-QLT-05, R-QLT-06, R-QLT-07, R-HDL-07]
+negative_cases:
+  - name: 没测急停就打勾
+    faults: [F-CK05]
+    path: [{action: record_check, item: CK-03, result: ok}]
+    expect: {violations: [R-QLT-05]}
+  - name: 先签字后检查
+    faults: [F-CK05]
+    path: [{action: sign_checklist}]
+    expect: {violations: [R-QLT-04]}
+  - name: 急停失效还开机
+    faults: [F-CK03]
+    path: [{action: first_piece_check}]
+    expect: {state: safety_terminated, violations: [R-SAF-06]}
+  - name: 磨损批头记为正常
+    faults: [F-CK05]
+    path: [{action: inspect, target: bit}, {action: record_check, item: CK-05, result: ok}]
+    expect: {violations: [R-QLT-06]}
+author: 示例师傅
+reviewed_by: [equipment, quality, ehs]

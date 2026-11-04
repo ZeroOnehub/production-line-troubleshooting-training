@@ -1,0 +1,69 @@
+id: SCN-T110
+version: 1
+type: alarm
+layer: 3
+station: OP30
+title: 急停被按下
+alarm: T-110
+summary: HMI 报 T-110 急停被按下。从他人误触、设备实际异常中随机抽一个根因。复位前必须确认安全；设备有异常绝不能复位。
+story: 你去物料区领料回来，发现 OP30 停着，三色灯红灯闪烁，急停按钮是按下的。
+objective: 确认周边安全与设备状态，误触则复位恢复，设备异常则保持急停叫维修
+event: {at_piece: 3}
+root_causes:
+  - id: RC-T110-A
+    name: 他人误触
+    weight: 0.6
+    in_operator_scope: true
+    setup: {estop_button: pressed}
+    surroundings: 隔壁 OP40 的同事说，他刚才搬料箱时胳膊碰到了急停。周边没有人在危险区，设备外观无异常，也没有异味。
+    clues:
+      - {indicator: estop_status, value: 急停按下}
+      - {component: estop_button, state: pressed, view: closeup/estop_pressed.webp}
+      - {composite: surroundings, value: 同事说搬料时碰到了急停}
+    direction: 急停是谁按的、为什么按的，问清楚、看清楚再说。
+    leak_keywords: [误触, 碰到了, 不小心按, 搬料碰]
+    correct_path:
+      - {action: inspect, target: estop_button}
+      - {action: safety_check}
+      - {action: release_estop}
+      - {action: reset_alarm}
+      - {action: resume}
+  - id: RC-T110-B
+    name: 设备实际异常
+    weight: 0.4
+    in_operator_scope: false
+    setup: {estop_button: pressed, gun_motor: abnormal}
+    surroundings: 周边没有人在危险区。走近拧紧枪能闻到明显的焦糊味，隔壁同事说是他闻到味道后拍的急停。
+    clues:
+      - {indicator: estop_status, value: 急停按下}
+      - {component: gun_motor, state: abnormal, view: closeup/gun_abnormal.webp}
+      - {composite: surroundings, value: 焦糊味，同事闻到后拍的急停}
+    andon_target: maintenance
+    repair: {gun_motor: normal, estop_button: released}
+    repair_first_piece: true
+    direction: 急停是谁按的、为什么按的，问清楚、看清楚再说。
+    leak_keywords: [焦糊, 异味, 发烫, 电机坏, 枪坏了, 冒烟]
+    correct_path:
+      - {action: inspect, target: estop_button}
+      - {action: safety_check}
+      - {action: inspect, target: gun_motor}
+      - {action: pull_andon, target: maintenance}
+      - {action: andon_report, elements: all}
+      - {action: wait}
+      - {action: first_piece_check}
+      - {action: resume}
+distractors:
+  - {target: tower_light, text: 三色灯红灯闪烁（急停状态下的正常表现）。}
+  - {target: pressure_gauge, value: 0.52, text: 压力表读数 0.52 MPa，指针在绿区，比平时略低一点。}
+rules: [R-SAF-04, R-SAF-05]
+negative_cases:
+  - name: 不看就复位急停
+    root_cause: RC-T110-A
+    path: [{action: release_estop}]
+    expect: {violations: [R-SAF-04]}
+  - name: 设备异常还复位急停
+    root_cause: RC-T110-B
+    path: [{action: safety_check}, {action: release_estop}]
+    expect: {state: safety_terminated, violations: [R-SAF-05]}
+author: 示例师傅
+reviewed_by: [equipment, quality, ehs]

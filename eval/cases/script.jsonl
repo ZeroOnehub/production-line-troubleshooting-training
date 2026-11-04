@@ -1,0 +1,10 @@
+{"id": "SCR-001", "category": "script", "input": "OP30 报 T-104 夹具未到位，最常见两种：一是夹具定位面上掉了铁屑，工件被垫起来没贴合，要先暂停，把工件拿出来吹干净再放回，复位就好；二是到位传感器坏了，工件明明放好了指示灯不亮，别自己掰传感器，直接叫维修，换完打首件。", "expected": "通过格式、引用校验与引擎回放", "source": "seed-draft", "split": "dev"}
+{"id": "SCR-002", "category": "script", "input": "T-101 扭矩低，最常见是批头磨损，刀口磨圆了，换批头前一定先暂停，NG 件先隔离，换完打首件；还有螺栓混料，料盒里混进了长螺栓，要把料盒整盒隔离，叫质量员。", "expected": "通过格式、引用校验与引擎回放", "source": "seed-draft", "split": "dev"}
+{"id": "SCR-003", "category": "script", "input": "T-103 扫码失败：一是扫码窗口脏了，擦干净重扫就行；二是扫码枪线缆松了，插头露针脚，别自己插，叫维修。", "expected": "通过格式、引用校验与引擎回放", "source": "seed-draft", "split": "test"}
+{"id": "SCR-004", "category": "script", "input": "T-105 安全光栅中断：常见是有人把周转盒放在光栅前面挡住了，拿走复位就行；光栅镜面脏了要先暂停再擦；光栅被撞歪对位偏移，两端灯是红的，叫维修，绝对不能屏蔽光栅。", "expected": "通过格式、引用校验与引擎回放", "source": "seed-draft", "split": "test"}
+{"id": "SCR-005", "category": "script", "input": "T-107 气源压力低：先看工位手阀是不是只开了一半，开到底就好；手阀全开了压力表还在红区，就是车间供气的问题，叫维修，调压阀不归你调。", "expected": "通过格式、引用校验与引擎回放", "source": "seed-draft", "split": "test"}
+{"id": "SCR-006", "category": "script", "input": "T-102 角度超差：螺栓斜入，第三颗歪了，隔离那一件就行；套筒松动的话要先暂停把套筒装紧，再打首件；螺纹孔里有切屑是来料问题，隔离后叫质量员。", "expected": "通过格式、引用校验与引擎回放", "source": "seed-draft", "split": "dev"}
+{"id": "SCR-007", "category": "script", "input": "T-109 螺栓缺料：料盒见底了就叫物料员补料；料盒明明是满的还报缺料，那是料位传感器误报，叫维修，别自己调传感器。", "expected": "通过格式、引用校验与引擎回放", "source": "seed-draft", "split": "test"}
+{"id": "SCR-008", "category": "script", "input": "T-110 急停被按下：先确认周边安全，问清楚是谁按的；如果是隔壁搬料误触，确认安全后复位急停；如果拧紧枪有焦糊味、发烫，设备有异常，急停绝对不能松，叫维修。", "expected": "通过格式、引用校验与引擎回放", "source": "seed-draft", "split": "dev"}
+{"id": "SCR-009", "category": "script", "input": "T-108 拧紧控制器通讯中断：可能是电气柜里网线接头松了，也可能是控制器网络模块坏了，两种都别碰，先暂停，直接叫维修，修好后打首件。", "expected": "通过格式、引用校验与引擎回放", "source": "seed-draft", "split": "dev"}
+{"id": "SCR-010", "category": "script", "input": "T-106 防错型号不符：要么是上料区混进了别的型号的件，要么是换型时 HMI 上型号没确认，不管哪种，一律停机隔离工件，叫班组长。", "expected": "通过格式、引用校验与引擎回放", "source": "seed-draft", "split": "test"}

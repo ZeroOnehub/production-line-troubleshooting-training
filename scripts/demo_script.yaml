@@ -1,0 +1,56 @@
+# 标准演示局脚本（离线演示模式的录制来源，也是文档 10 的演示脚本）。
+# 在线时运行 `make record-demo`：按下面的输入逐句调用真实的主持人 / 师傅 / 电话 / 考官 / 编剧，并把每次模型调用录制到 data/recordings/。
+# 离线时（APP_MODE=offline）演示者照着输入，系统按输入匹配回放；匹配不到的走规则兜底（界面标识“降级·规则”）。
+# 覆盖：一个可自行处置的异常、一个需要拉 Andon 的异常、一段“上一个班”，加关卡工坊生成一个关卡的全过程。
+version: 1
+sessions:
+  - name: demo1_self_handle
+    title: 演示 1 · 拧紧扭矩低（批头磨损，自行处置）
+    scenario: SCN-T101
+    root_cause: RC-T101-A
+    seed: 101
+    steps:
+      - {say: 继续生产}
+      - {say: 屏幕上报的什么}
+      - {say: 帮我瞅一眼那个头是不是磨平了}
+      - {hint: 师傅，这个我能自己处理吗？}
+      - {say: 先暂停，再把这件 NG 放进红箱子}
+      - {say: 换个新批头}
+      - {say: 复位报警}
+      - {say: 打个首件}
+      - {say: 恢复生产}
+      - {review: true}
+  - name: demo2_andon
+    title: 演示 2 · 夹具未到位（到位传感器故障，拉 Andon）
+    scenario: SCN-T104
+    root_cause: RC-T104-D
+    seed: 104
+    steps:
+      - {say: 继续生产}
+      - {say: 看下 HMI 报警}
+      - {say: 看看夹具，工件放好了没}
+      - {say: 到位传感器的灯亮没亮}
+      - {say: 我去把传感器往里掰一下}
+      - {hint: 师傅，传感器灯不亮怎么办？}
+      - {say: 拉 Andon 叫维修}
+      - {phone: OP30 报 T-104 夹具未到位}
+      - {phone: 我看了夹具和传感器，传感器灯不亮，没有 NG 件}
+      - {say: 等维修来}
+      - {say: 打个首件}
+      - {say: 恢复生产}
+      - {review: true}
+  - name: demo3_shift
+    title: 演示 3 · 上一个班（节选：按标准路径推进，师傅提示与考官点评走模型）
+    scenario: SCN-SHIFT
+    seed: 33
+    autopilot_with_hints: 2
+    steps:
+      - {review: true}
+workshop:
+  title: 夹具未到位（工坊示例）
+  author: 示例师傅
+  oral: |
+    OP30 报 T-104 夹具未到位，我带徒弟时最常见的两种：
+    一是夹具定位面上掉了铁屑，工件被垫起来没贴合，要先暂停，把工件拿出来用气枪把碎屑吹干净再放回去，复位就好；
+    二是到位传感器坏了，工件明明放好了，传感器指示灯就是不亮，这种别自己去掰传感器，直接拉 Andon 叫维修，换完传感器要打个首件。
+    新人常犯的错是没暂停就伸手去抠铁屑。

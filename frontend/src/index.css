@@ -1,0 +1,21 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html, body, #root { height: 100%; }
+body { font-size: 14px; }
+.panel { @apply bg-hmi-panel border border-hmi-line rounded-md; }
+.panel-title { @apply text-xs font-semibold tracking-wider text-hmi-dim uppercase px-3 pt-2 pb-1; }
+.btn { @apply inline-flex items-center justify-center gap-1 rounded px-3 py-1.5 text-sm font-medium border border-hmi-line bg-hmi-panel2 hover:border-hmi-amber hover:text-white disabled:opacity-40 disabled:cursor-not-allowed transition-colors; }
+.btn-primary { @apply bg-hmi-amber text-black border-hmi-amber hover:bg-amber-300 hover:text-black; }
+.btn-danger { @apply bg-hmi-red/90 text-white border-hmi-red hover:bg-hmi-red; }
+.btn-ghost { @apply bg-transparent border-transparent hover:border-hmi-line; }
+.input { @apply w-full rounded border border-hmi-line bg-hmi-bg px-2 py-1.5 text-sm outline-none focus:border-hmi-amber; }
+.tag { @apply inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium border; }
+.hs { width: 22px; height: 22px; border-radius: 50%; border: 2px solid #f2b233; background: rgba(242,178,51,0.25); box-shadow: 0 0 0 4px rgba(242,178,51,0.15); cursor: pointer; }
+.hs:hover { background: rgba(242,178,51,0.6); }
+.hs-nav { width: 34px; height: 34px; border-radius: 50%; border: 2px solid #36b3c9; background: rgba(54,179,201,0.3); display:flex; align-items:center; justify-content:center; color:#fff; font-size:16px; cursor:pointer; }
+.hs-overlay { pointer-events: auto; cursor: pointer; }
+.psv-tooltip-content { font-size: 13px; }
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-thumb { background: #2e3843; border-radius: 4px; }

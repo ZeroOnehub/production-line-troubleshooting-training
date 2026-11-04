@@ -1,0 +1,85 @@
+# 角色 → 模型映射。改这里即可切换模型；评测选型结论会写回本文件（python -m eval.selection --write-config）。
+# 当前为评测选型结果：eval/reports/20261103-llm-r2-test（先过安全门槛，再按准确率 50% / 响应时间 30% / 成本 20% 加权）。
+version: 1
+status: 评测选型结果（20261103-llm-r2-test + 20261103-llm-r3-test，合并）
+
+provider:
+  default: aihubmix
+  platforms:
+    aihubmix:
+      base_url: https://aihubmix.com/v1
+      api_key_env: AIHUBMIX_API_KEY
+    # 私有化部署预留：vLLM 提供 OpenAI 兼容接口。此项只用于说明切换方式。
+    vllm:
+      base_url: http://vllm.internal:8000/v1
+      api_key_env: VLLM_API_KEY
+
+pricing_catalog: config/model_catalog.json   # 由 scripts/fetch_model_catalog.py 从 AIHubMix 公开价格接口拉取
+usd_to_cny: 7.1                              # 仅用于界面折算展示
+
+roles:
+  narrator:        # 主持人：工具调用强、延迟低
+    model: qwen3.6-35b-a3b
+    temperature: 0.1
+    timeout_s: 10
+    max_tokens: 400
+    extra_body: {enable_thinking: false}
+  coach:           # 带班师傅：评测选型（初始为 qwen3.6-27b）
+    model: deepseek-v4-flash
+    temperature: 0.4
+    timeout_s: 10
+    max_tokens: 200
+    extra_body: {enable_thinking: false}
+  phone:           # 电话角色（维修工 / 质量员 / 班组长）：中等
+    model: qwen3.6-35b-a3b
+    temperature: 0.1
+    timeout_s: 10
+    max_tokens: 300
+    extra_body: {enable_thinking: false}
+  examiner:        # 考官：评测集没有考官类用例，保持初始配置
+    model: qwen3.6-27b
+    temperature: 0.3
+    timeout_s: 20
+    max_tokens: 600
+    extra_body: {enable_thinking: false}
+  scriptwriter:    # 关卡编剧：评测选型（初始为 qwen3.8-max）；生成长剧本较慢，超时设为 240 秒
+    model: deepseek-v4-flash
+    temperature: 0.3
+    timeout_s: 240
+    max_tokens: 6000
+    extra_body: {}
+  guard:           # 安全守卫：以规则检查为主，不调用模型
+    model: null
+  judge:           # 评测裁判：必须与被测模型不同
+    model: deepseek-v4-pro
+    temperature: 0.0
+    timeout_s: 60
+    max_tokens: 400
+    extra_body: {}
+
+voice:
+  asr:
+    provider: aihubmix          # 可选 bailian（阿里云百炼），两者实现同一接口
+    model: whisper-large-v3
+    language: zh
+    timeout_s: 15
+  tts:
+    provider: aihubmix
+    model: qwen-audio-3.0-tts-flash
+    fallback_model: tts-1
+    voices: {coach: alloy, maintenance: onyx, quality: nova, team_leader: echo, narrator: alloy}
+    timeout_s: 15
+  bailian:
+    api_key_env: DASHSCOPE_API_KEY
+    asr_model: paraformer-realtime-v2
+    tts_model: cosyvoice-v2
+
+# 评测候选。
+candidates:
+  - {id: qwen3.6-27b, type: 开源权重，稠密, role_in_eval: 私有化主力候选}
+  - {id: qwen3.6-35b-a3b, type: 开源权重，MoE, role_in_eval: 低延迟候选，适合主持人和电话角色}
+  - {id: deepseek-v4-flash, type: 开源权重, role_in_eval: 成本对照；是否开放权重以官方发布为准}
+  - {id: qwen3.8-max, type: 闭源旗舰, role_in_eval: 上限参照；关卡编剧可用}
+  - {id: deepseek-v4-pro, type: 开源权重超大模型, role_in_eval: 上限参照 / 裁判}
+# 规则降级模式也作为一个“模型”参与评测，用于说明模型不可用时系统的兜底表现（不是大模型结果）。
+baseline: rule-baseline

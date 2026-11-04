@@ -1,0 +1,74 @@
+id: SCN-CHG-AB
+version: 1
+type: changeover
+layer: 2
+station: OP30
+title: 换型 A → B
+summary: 正在生产 A 型时接到换型指令，按清单完成 HMI 选型号与程序号、更换夹具定位块、更换螺栓料盒、首件确认并请质量员确认。漏掉任一步，后续会触发对应报警。
+story: 生产 A 型到第 2 件时，班组长在对讲机里说：“OP30 下一件开始切 B 型。”
+objective: 完成换型全部步骤，B 型首件合格并经质量员确认，恢复生产
+from_variant: A
+to_variant: B
+event: {at_piece: 2, type: changeover_order, notice: 班组长：OP30 下一件开始切 B 型，按换型清单做，首件叫质量确认。}
+steps:
+  - action: pause_equipment
+    name: 停线
+  - action: hmi_select_variant
+    variant: B
+    name: HMI 选择型号 B
+    miss: {fact: hmi_variant_mismatch, alarm: T-106, in_operator_scope: false, andon_target: team_leader, repair: {hmi.variant: B}, repair_first_piece: true}
+  - action: hmi_select_program
+    program: P02
+    name: HMI 选择程序号 P02
+    miss: {fact: program_mismatch, alarm: T-101, in_operator_scope: true}
+  - action: replace_locating_block
+    variant: B
+    name: 更换夹具定位块（B 型，黄色）
+    miss: {fact: block_mismatch, alarm: T-104, in_operator_scope: true}
+  - action: replace_bolt_box
+    variant: B
+    name: 更换螺栓料盒（B 型，黄色）
+    miss: {fact: bolt_variant_mismatch, alarm: T-101, in_operator_scope: true}
+  - action: first_piece_check
+    name: 首件确认
+  - action: call_quality_confirm
+    name: 请质量员确认首件
+    miss: {rule: R-QLT-01}
+  - action: resume
+    name: 恢复生产
+distractors:
+  - {target: pressure_gauge, value: 0.52, text: 压力表读数 0.52 MPa，指针在绿区，比平时略低一点。}
+  - {target: locating_block, text: 定位块边缘有使用痕迹，但标识清楚、安装牢固。}
+root_causes: []
+rules: [R-SAF-01, R-HDL-06, R-HDL-07, R-HDL-10, R-HDL-11, R-QLT-01, R-PRM-08]
+negative_cases:
+  - name: 漏换定位块
+    path:
+      - {action: pause_equipment}
+      - {action: hmi_select_variant, variant: B}
+      - {action: hmi_select_program, program: P02}
+      - {action: replace_bolt_box, variant: B}
+      - {action: first_piece_check}
+    expect: {alarm: T-104, violations: [R-HDL-11]}
+  - name: 漏在 HMI 确认型号
+    path:
+      - {action: pause_equipment}
+      - {action: replace_locating_block, variant: B}
+      - {action: replace_bolt_box, variant: B}
+      - {action: first_piece_check}
+    expect: {alarm: T-106, violations: [R-HDL-11]}
+  - name: 不停线直接换定位块
+    path: [{action: replace_locating_block, variant: B}]
+    expect: {state: safety_terminated, violations: [R-SAF-01]}
+  - name: 首件没叫质量就恢复
+    path:
+      - {action: pause_equipment}
+      - {action: hmi_select_variant, variant: B}
+      - {action: hmi_select_program, program: P02}
+      - {action: replace_locating_block, variant: B}
+      - {action: replace_bolt_box, variant: B}
+      - {action: first_piece_check}
+      - {action: resume}
+    expect: {violations: [R-QLT-01]}
+author: 示例师傅
+reviewed_by: [equipment, quality, ehs]

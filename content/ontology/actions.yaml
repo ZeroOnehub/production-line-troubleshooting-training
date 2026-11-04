@@ -1,0 +1,533 @@
+# 业务本体 · 动作清单（本体的“动词”）。AI 只能通过这些动作改变训练局状态。
+# 字段：
+#   category    动作类别（states.yaml 按类别限定每个状态允许的动作）
+#   panel       动作面板分组（null 表示不在面板上出现，只能由系统/电话角色触发）
+#   zone        作业区域：fixture 夹具区 / tool 拧紧枪刀具 / curtain 光栅镜面 / electrical 电气 / none
+#   requires_pause  是否要求设备处于暂停/急停/停机（由安全规则 R-SAF-01/02/08 判定，违反即触发规则）
+#   duration_s  耗时（示意值，计入训练局时钟与停线时长）
+#   sets_first_piece  执行后下一件必须做首件确认（R-HDL-07）
+#   aliases     口语说法，供自然语言解析的规则降级模式和评测集标注使用
+#   demo        三级提示“示范”时的说法
+version: 1
+
+actions:
+  # ---------------- 观察 ----------------
+  - id: inspect
+    name: 查看
+    category: observe
+    panel: 观察
+    params: {target: {type: target, required: true}}
+    zone: none
+    requires_pause: false
+    duration_s: 5
+    aliases: [看看, 看一下, 瞅瞅, 瞅一眼, 瞧瞧, 检查, 查看, 观察, 确认一下, 看下, 瞄一眼, 盯一下]
+    effect: 返回目标的当前状态描述与近景图；点亮图鉴（认识工位关卡）
+    demo: 先去看清楚{target_name}的状态。
+  - id: safety_check
+    name: 确认周边安全
+    category: observe
+    panel: 观察
+    params: {}
+    zone: none
+    requires_pause: false
+    duration_s: 10
+    aliases: [确认周边安全, 看看周围, 看一圈, 环顾四周, 确认安全, 检查周边]
+    effect: 返回工位周边人员与设备外观情况；记为“已确认安全”，复位急停的前置条件（R-SAF-04）
+    demo: 复位急停之前，先绕设备看一圈，确认没人在危险区、设备没有异常。
+
+  # ---------------- 设备控制 ----------------
+  - id: run_production
+    name: 继续生产
+    category: flow
+    panel: 设备
+    params: {}
+    zone: none
+    requires_pause: false
+    duration_s: 0          # 实际耗时 = 节拍 × 生产件数
+    aliases: [继续生产, 接着干, 正常生产, 开始干活, 干下一件, 继续做]
+    effect: 正常生产状态下按节拍连续生产，直到下一个事件发生或班次结束
+    demo: 设备正常，按节拍继续生产。
+  - id: pause_equipment
+    name: 暂停设备
+    category: control
+    panel: 设备
+    params: {}
+    zone: none
+    requires_pause: false
+    duration_s: 3
+    aliases: [暂停, 停一下, 先停, 停机, 停下来, 暂停设备, 按暂停, 停线, 停掉]
+    effect: 设备进入暂停（安全状态），三色灯黄灯
+    demo: 先按暂停，把设备停稳再动手。
+  - id: emergency_stop
+    name: 按下急停
+    category: control
+    panel: 设备
+    params: {}
+    zone: none
+    requires_pause: false
+    duration_s: 2
+    aliases: [拍急停, 按急停, 急停, 紧急停止]
+    effect: 设备急停，三色灯红灯；需确认安全后复位急停
+    demo: 有危险先拍急停。
+  - id: release_estop
+    name: 复位急停
+    category: control
+    panel: 设备
+    params: {}
+    zone: none
+    requires_pause: false
+    duration_s: 5
+    aliases: [复位急停, 松开急停, 拔起急停, 急停复位, 把急停拔起来, 旋开急停]
+    effect: 急停按钮弹起，设备回到报警停机状态，需再复位报警
+    demo: 确认安全后，旋转拔起急停按钮。
+  - id: reset_alarm
+    name: 复位报警
+    category: control
+    panel: 设备
+    params: {}
+    zone: none
+    requires_pause: false
+    duration_s: 5
+    aliases: [复位, 复位报警, 清报警, 消报警, 按复位, 报警复位, 重置]
+    effect: 清除 HMI 当前报警；根因未消除时，下一次循环报警会再次出现（计入复现次数）
+    demo: 处理完了再按复位，把报警清掉。
+  - id: resume
+    name: 恢复生产
+    category: flow
+    panel: 设备
+    params: {}
+    zone: none
+    requires_pause: false
+    duration_s: 5          # 另加一个节拍
+    aliases: [恢复生产, 开机, 启动, 重新开始, 继续, 开始生产, 开线, 开机生产, 恢复]
+    effect: 启动循环生产下一件；夹具内上一件会被放行到下游（NG 未隔离即为 NG 流出）
+    demo: 确认都处理好了，再启动恢复生产。
+  - id: first_piece_check
+    name: 首件确认
+    category: quality
+    panel: 处置
+    params: {}
+    zone: none
+    requires_pause: false
+    duration_s: 30         # 另加一个节拍（首件按首件模式生产一件）
+    aliases: [首件确认, 打首件, 做首件, 首件, 打个首件, 首件检验, 试一件, 试做一件]
+    effect: 按首件模式生产一件并检查拧紧结果；合格则进入恢复确认，不合格则回到排查中
+    demo: 先打一个首件，结果合格再恢复生产。
+
+  # ---------------- 处置（操作工权限内） ----------------
+  - id: replace_bit
+    name: 更换批头
+    category: handle
+    panel: 处置
+    params: {}
+    zone: tool
+    requires_pause: true
+    duration_s: 60
+    sets_first_piece: true
+    aliases: [换批头, 更换批头, 换个批头, 换刀头, 换起子头, 换头, 换个新批头, 换批嘴]
+    effect: 批头恢复正常，批头计数清零；下一件必须首件确认
+    demo: 暂停后从备件盒拿新批头换上。
+  - id: tighten_socket
+    name: 重新装紧套筒
+    category: handle
+    panel: 处置
+    params: {}
+    zone: tool
+    requires_pause: true
+    duration_s: 40
+    sets_first_piece: true
+    aliases: [装紧套筒, 拧紧套筒, 重新装套筒, 套筒装好, 紧一下套筒, 把套筒装紧]
+    effect: 套筒恢复正常；下一件必须首件确认
+    demo: 暂停后把套筒重新装到位，定位销卡紧。
+  - id: clean_fixture
+    name: 清理夹具碎屑
+    category: handle
+    panel: 处置
+    params: {}
+    zone: fixture
+    requires_pause: true
+    duration_s: 45
+    aliases: [清理夹具, 清夹具, 把碎屑弄掉, 清理碎屑, 吹一下夹具, 擦夹具, 扒出碎屑, 清一下夹具]
+    effect: 夹具碎屑清除，工件重新放好
+    demo: 暂停后取出工件，用气枪吹净定位面上的碎屑再放回。
+  - id: reposition_workpiece
+    name: 重新放置工件
+    category: handle
+    panel: 处置
+    params: {}
+    zone: fixture
+    requires_pause: true
+    duration_s: 20
+    aliases: [重新放工件, 放正工件, 重新放一下, 把工件放好, 重新摆一下, 工件放平, 摆正]
+    effect: 工件放正，贴合定位销
+    demo: 暂停后把工件取出，重新放到定位销上。
+  - id: clean_scanner_window
+    name: 清洁扫码窗口
+    category: handle
+    panel: 处置
+    params: {}
+    zone: none
+    requires_pause: false
+    duration_s: 20
+    aliases: [擦扫码枪, 清洁扫码窗口, 擦一下扫码头, 擦镜头, 擦扫码窗口, 擦干净扫码枪]
+    effect: 扫码窗口恢复干净
+    demo: 用无尘布把扫码枪窗口擦干净。
+  - id: rescan
+    name: 重新扫码
+    category: handle
+    panel: 处置
+    params: {}
+    zone: none
+    requires_pause: false
+    duration_s: 10
+    aliases: [重新扫码, 再扫一次, 重扫, 扫一下, 再扫一遍, 重新扫]
+    effect: 重新读取工件条码；成功则清除扫码报警，失败计一次报警复现
+    demo: 处理完再扫一次码。
+  - id: clean_curtain_mirror
+    name: 清洁光栅镜面
+    category: handle
+    panel: 处置
+    params: {}
+    zone: curtain
+    requires_pause: true
+    duration_s: 30
+    aliases: [擦光栅, 清洁光栅, 擦光栅镜面, 擦光幕, 清洁光幕, 擦一下光栅]
+    effect: 光栅镜面恢复干净
+    demo: 暂停后用无尘布擦干净光栅两端镜面。
+  - id: remove_obstruction
+    name: 移除遮挡物
+    category: handle
+    panel: 处置
+    params: {}
+    zone: none
+    requires_pause: false
+    duration_s: 10
+    aliases: [拿走遮挡, 移开, 拿开, 把盒子拿走, 移除遮挡, 挪开, 把东西拿走]
+    effect: 光栅检测区域恢复无遮挡
+    demo: 把挡在光栅前面的东西拿走。
+  - id: open_hand_valve
+    name: 打开工位手阀
+    category: handle
+    panel: 处置
+    params: {}
+    zone: none
+    requires_pause: false
+    duration_s: 10
+    aliases: [开手阀, 打开手阀, 把阀门开大, 手阀开到底, 开阀, 把手阀打开]
+    effect: 工位手阀全开
+    demo: 把工位手阀手柄转到与管路平行，全开。
+  - id: isolate_ng_part
+    name: 隔离 NG 件
+    category: quality
+    panel: 处置
+    params: {}
+    zone: fixture
+    requires_pause: true
+    duration_s: 30
+    aliases: [隔离, 隔离NG件, 放NG箱, 放进NG箱, 隔离不良品, 把这件隔离, 隔离工件, 放红箱子, 贴NG标签, 拿下来隔离]
+    effect: 从夹具取下当前工件，放入红色 NG 料箱并贴 NG 标签（R-QLT-02）
+    demo: 暂停后把这件取下来，放进红色 NG 料箱，贴好 NG 标签。
+  - id: isolate_bolt_box
+    name: 隔离螺栓料盒
+    category: quality
+    panel: 处置
+    params: {}
+    zone: none
+    requires_pause: false
+    duration_s: 20
+    aliases: [隔离料盒, 隔离螺栓料盒, 把料盒拿开, 料盒隔离, 整盒隔离, 隔离螺栓]
+    effect: 料盒移到待判定区并挂“待判定”标识，等待质量员确认
+    demo: 把这盒螺栓整盒隔离，挂上待判定牌。
+  - id: tidy_workstation
+    name: 整理工位
+    category: handle
+    panel: 处置
+    params: {}
+    zone: none
+    requires_pause: false
+    duration_s: 20
+    aliases: [整理工位, 收拾一下, 整理一下, 打扫工位, 收拾工位]
+    effect: 工位物品归位
+    demo: 趁等人的时间把工位收拾好。
+  - id: release_part
+    name: 放行工件
+    category: quality
+    panel: 处置
+    params: {}
+    zone: none
+    requires_pause: false
+    duration_s: 5
+    aliases: [放行, 放过去, 直接放行, 流下去, 让它过去, 放到下道]
+    effect: 松开夹具，把当前工件送往下游；NG 件放行即判定 NG 流出（R-QLT-02）
+    demo: 只有合格件才能放行。
+
+  # ---------------- 换型 ----------------
+  - id: hmi_select_variant
+    name: HMI 选择型号
+    category: changeover
+    panel: HMI
+    params: {variant: {type: enum, values: [A, B], required: true}}
+    zone: none
+    requires_pause: false
+    duration_s: 10
+    aliases: [选型号, 切型号, HMI选型号, 换型号, 选B型, 选A型, 型号切到]
+    effect: HMI 当前型号切换并确认；非换型期间禁止操作（R-PRM-08）
+    demo: 在 HMI 上选型号{variant}并确认。
+  - id: hmi_select_program
+    name: HMI 选择程序号
+    category: changeover
+    panel: HMI
+    params: {program: {type: enum, values: [P01, P02], required: true}}
+    zone: none
+    requires_pause: false
+    duration_s: 10
+    aliases: [选程序, 切程序, 程序号, 选程序号, 换程序]
+    effect: 拧紧程序号切换；非换型期间禁止操作（R-PRM-08）
+    demo: 在 HMI 上把拧紧程序号切到{program}。
+  - id: replace_locating_block
+    name: 更换夹具定位块
+    category: changeover
+    panel: 换型
+    params: {variant: {type: enum, values: [A, B], required: true}}
+    zone: fixture
+    requires_pause: true
+    duration_s: 90
+    sets_first_piece: true
+    aliases: [换定位块, 更换定位块, 换垫块, 定位块换成]
+    effect: 夹具定位块切换为指定型号
+    demo: 暂停后把夹具定位块换成{variant}型。
+  - id: replace_bolt_box
+    name: 更换螺栓料盒
+    category: changeover
+    panel: 换型
+    params: {variant: {type: enum, values: [A, B], required: true}}
+    zone: none
+    requires_pause: false
+    duration_s: 30
+    aliases: [换料盒, 更换料盒, 换螺栓料盒, 换螺栓, 料盒换成]
+    effect: 螺栓料盒切换为指定型号
+    demo: 把螺栓料盒换成{variant}型（看颜色标识）。
+  - id: call_quality_confirm
+    name: 请质量员确认首件
+    category: quality
+    panel: 换型
+    params: {}
+    zone: none
+    requires_pause: false
+    duration_s: 60
+    aliases: [请质量员确认, 叫质量确认首件, 质量员签字, 找质量确认, 请质量签首件]
+    effect: 质量员到场确认首件并签字（换型首件，R-QLT-01）
+    demo: 首件合格后请质量员来确认签字。
+
+  # ---------------- 呼叫与升级 ----------------
+  - id: pull_andon
+    name: 拉 Andon
+    category: escalate
+    panel: 呼叫
+    params: {target: {type: enum, values: [maintenance, quality, team_leader], required: true}}
+    zone: none
+    requires_pause: false
+    duration_s: 5
+    aliases: [拉Andon, 拉安灯, 按Andon, 叫维修, 叫质量, 叫班长, 找维修, 找质量员, 找班长, 呼叫维修, 打电话给维修, 报修, 呼叫]
+    effect: 触发 Andon，对应角色来电询问；汇报质量决定到场时间
+    demo: 这个不在你权限内，拉 Andon 叫{target_name}。
+  - id: andon_report
+    name: 提交汇报要素
+    category: escalate
+    panel: null            # 由电话角色抽取要素后调用，学员不能直接点
+    params: {elements: {type: object, required: true}}
+    zone: none
+    requires_pause: false
+    duration_s: 30
+    aliases: []
+    effect: 引擎核对汇报要素（工位/报警码/已做操作/NG 数量），按覆盖率计算到场时间
+    demo: 电话里说清楚：哪个工位、什么报警、做了什么、隔离了几件。
+  - id: call_material
+    name: 呼叫物料员
+    category: escalate
+    panel: 呼叫
+    params: {}
+    zone: none
+    requires_pause: false
+    duration_s: 5
+    aliases: [叫物料, 呼叫物料, 补料, 叫物料员, 要料, 叫人送料]
+    effect: 物料员按固定时间到场补料
+    demo: 料不够了，呼叫物料员补料。
+  - id: wait
+    name: 等待到场
+    category: wait
+    panel: 呼叫
+    params: {}
+    zone: none
+    requires_pause: false
+    duration_s: 0          # 时钟推进到到场时刻
+    aliases: [等, 等一下, 等维修, 等他来, 等人来, 等待]
+    effect: 时钟推进到维修/质量/班组长/物料员到场；到场后按根因执行处置
+    demo: 汇报完了，等人到场，同时把能做的做好。
+
+  # ---------------- 点检 ----------------
+  - id: test_estop
+    name: 急停功能测试
+    category: record
+    panel: 点检
+    params: {}
+    zone: none
+    requires_pause: false
+    duration_s: 20
+    aliases: [测急停, 急停测试, 试一下急停, 急停功能测试]
+    effect: 按下并复位急停，观察设备是否立即停止
+    demo: 按一下急停，看设备是不是立刻停，再复位。
+  - id: test_light_curtain
+    name: 光栅功能测试
+    category: record
+    panel: 点检
+    params: {}
+    zone: none
+    requires_pause: false
+    duration_s: 20
+    aliases: [测光栅, 光栅测试, 试一下光栅, 光栅功能测试, 用测试棒挡一下]
+    effect: 用测试棒遮挡光栅，观察设备是否停止
+    demo: 拿测试棒挡一下光栅，看设备停不停。
+  - id: test_tower_light
+    name: 三色灯测试
+    category: record
+    panel: 点检
+    params: {}
+    zone: none
+    requires_pause: false
+    duration_s: 10
+    aliases: [测三色灯, 三色灯测试, 试灯, 灯测试]
+    effect: HMI 上执行灯测，观察红黄绿三色是否都亮
+    demo: 在 HMI 上做一次灯测，三个颜色都要亮。
+  - id: record_check
+    name: 填写点检记录
+    category: record
+    panel: 点检
+    params: {item: {type: checklist_item, required: true}, result: {type: enum, values: [ok, ng], required: true}}
+    zone: none
+    requires_pause: false
+    duration_s: 5
+    aliases: [记录, 打勾, 填点检表, 记一下, 填记录]
+    effect: 在点检记录表上记录该项结果（正常 / 异常已处理）
+    demo: 查完一项记一项，异常要如实记。
+  - id: sign_checklist
+    name: 点检记录签字
+    category: record
+    panel: 点检
+    params: {}
+    zone: none
+    requires_pause: false
+    duration_s: 5
+    aliases: [签字, 点检签字, 签名, 签个字]
+    effect: 点检记录签字确认；全部项目检查并记录后才能签（R-QLT-04）
+    demo: 8 项都查完记好了再签字。
+
+  # ---------------- 认识工位 ----------------
+  - id: cycle_step
+    name: 观看工作循环下一步
+    category: tour
+    panel: 认识工位
+    params: {}
+    zone: none
+    requires_pause: false
+    duration_s: 0
+    aliases: [下一步, 看下一步, 继续演示, 工作循环]
+    effect: 分步演示一个工作循环：上件 → 扫码 → 夹紧 → 拧紧 4 颗螺栓 → 结果判定 → 松开 → 下件
+    demo: 跟着看完一个完整的工作循环。
+
+  # ---------------- 越权与危险动作（存在于本体中，以便识别并拒绝） ----------------
+  - id: open_electrical_cabinet
+    name: 打开电气柜
+    category: forbidden
+    panel: null
+    params: {}
+    zone: electrical
+    requires_pause: false
+    duration_s: 0
+    aliases: [打开电气柜, 开电气柜, 开柜门, 打开柜子, 看看接线, 打开电柜, 开电箱]
+    effect: 操作工无权执行，拒绝并记一次越权尝试（R-PRM-01）
+    demo: 电气柜不是你开的，叫维修。
+  - id: modify_program_params
+    name: 修改程序和参数
+    category: forbidden
+    panel: null
+    params: {}
+    zone: electrical
+    requires_pause: false
+    duration_s: 0
+    aliases: [改参数, 修改参数, 改程序, 调扭矩, 改扭矩, 调参数, 把下限调低, 改一下设定值]
+    effect: 操作工无权执行，拒绝并记一次越权尝试（R-PRM-02）
+    demo: 参数不能动。
+  - id: adjust_sensor
+    name: 调整传感器
+    category: forbidden
+    panel: null
+    params: {}
+    zone: electrical
+    requires_pause: false
+    duration_s: 0
+    aliases: [调传感器, 调整传感器, 掰一下传感器, 调光栅, 对一下光栅, 调感应器, 挪传感器]
+    effect: 操作工无权执行，拒绝并记一次越权尝试（R-PRM-03）
+    demo: 传感器别乱调，叫维修。
+  - id: disassemble_equipment
+    name: 拆机
+    category: forbidden
+    panel: null
+    params: {}
+    zone: electrical
+    requires_pause: false
+    duration_s: 0
+    aliases: [拆开, 拆机, 拆下来看看, 把枪拆了, 拆控制器, 拆夹具]
+    effect: 操作工无权执行，拒绝并记一次越权尝试（R-PRM-04）
+    demo: 设备不能拆。
+  - id: reconnect_cable
+    name: 插拔线缆
+    category: forbidden
+    panel: null
+    params: {}
+    zone: electrical
+    requires_pause: false
+    duration_s: 0
+    aliases: [插一下线, 重新插线, 拔插, 插紧插头, 把线插好, 重插线缆, 插拔一下]
+    effect: 电气连接不归操作工处理，拒绝并记一次越权尝试（R-PRM-05）
+    demo: 线缆插头别动，叫维修。
+  - id: adjust_regulator
+    name: 调节调压阀
+    category: forbidden
+    panel: null
+    params: {}
+    zone: electrical
+    requires_pause: false
+    duration_s: 0
+    aliases: [调压阀, 调节调压阀, 把压力调高, 调气压, 拧调压阀, 调减压阀]
+    effect: 气路设定不归操作工调整，拒绝并记一次越权尝试（R-PRM-06）
+    demo: 调压阀不归你调，你只能开关工位手阀。
+  - id: hmi_enter_maintenance
+    name: 进入 HMI 维护页面
+    category: forbidden
+    panel: null
+    params: {}
+    zone: electrical
+    requires_pause: false
+    duration_s: 0
+    aliases: [进维护页面, 进维护模式, 进入维护界面, 打开维护页]
+    effect: 操作工无维护页面权限，拒绝并记一次越权尝试（R-PRM-07）
+    demo: 维护页面要维修权限。
+  - id: bypass_safety
+    name: 屏蔽安全装置
+    category: forbidden
+    panel: null
+    params: {}
+    zone: electrical
+    requires_pause: false
+    duration_s: 0
+    aliases: [屏蔽光栅, 短接光栅, 把光栅屏蔽, 短接急停, 跳过光栅, 光栅旁路, 把光栅关了]
+    effect: 一票否决：训练局安全终止（R-SAF-03）
+    demo: 安全装置绝不能屏蔽。
+
+# 后台动作：只由引擎/电话角色在到场时执行，不对学员开放
+system_actions:
+  - {id: start_session, name: 开局}
+  - {id: event, name: 事件触发}
+  - {id: arrival, name: 支援到场处置}
+  - {id: shift_end, name: 班次结束}

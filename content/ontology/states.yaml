@@ -1,0 +1,96 @@
+# 业务本体 · 状态流转
+# 一、训练局（中心对象）。每个状态允许哪些动作在 allow 中写明（按动作类别或动作 ID）。
+# 安全类动作（按下急停）在所有进行中的状态都允许；越权动作（forbidden）在进行中的状态都“允许尝试”，
+# 以便被权限规则拒绝并记录越权尝试，而不是被状态静默挡掉。
+version: 1
+
+session_states:
+  created:
+    label: 已创建
+    allow: []
+  normal_production:
+    label: 正常生产
+    allow_categories: [observe, control, flow, handle, quality, changeover, escalate, record, tour, forbidden]
+  abnormal:
+    label: 异常发生
+    allow_categories: [observe, control, flow, handle, quality, changeover, escalate, record, forbidden]
+  investigating:
+    label: 排查中
+    allow_categories: [observe, control, flow, handle, quality, changeover, escalate, record, tour, forbidden]
+  handling:
+    label: 处置中
+    allow_categories: [observe, control, flow, handle, quality, changeover, escalate, record, forbidden]
+  recovery_check:
+    label: 恢复确认
+    allow_categories: [observe, control, flow, handle, quality, changeover, escalate, record, forbidden]
+  andon_called:
+    label: 已拉 Andon
+    allow: [andon_report, isolate_ng_part, isolate_bolt_box, tidy_workstation, pause_equipment, emergency_stop]
+    allow_categories: [forbidden]
+  waiting_repair:
+    label: 等待维修
+    # 只允许隔离 NG 件、整理工位、与维修工对话（对话走 /andon 接口，不是动作）
+    allow: [isolate_ng_part, isolate_bolt_box, tidy_workstation, wait, emergency_stop]
+    allow_categories: [forbidden]
+  safety_terminated:
+    label: 安全终止
+    allow: []
+  review:
+    label: 复盘
+    allow: []
+  completed:
+    label: 已完成
+    allow: []
+
+session_transitions:
+  - {from: created, to: normal_production, by: 开局（异常关卡、换型、上一个班、认识工位）}
+  - {from: created, to: investigating, by: 开局（开班点检：直接进入点检）}
+  - {from: normal_production, to: abnormal, by: 随机事件触发报警}
+  - {from: abnormal, to: investigating, by: 任意查看类动作}
+  - {from: abnormal, to: handling, by: 任意处置/控制类动作}
+  - {from: investigating, to: handling, by: 任意处置/控制类动作}
+  - {from: handling, to: recovery_check, by: 首件确认合格 / 恢复生产（根因已消除）}
+  - {from: recovery_check, to: investigating, by: 回退：首件不合格或报警复现}
+  - {from: handling, to: investigating, by: 回退：恢复生产时报警复现}
+  - {from: investigating, to: andon_called, by: 拉 Andon}
+  - {from: handling, to: andon_called, by: 拉 Andon}
+  - {from: andon_called, to: waiting_repair, by: 电话汇报完成（引擎按要素覆盖率算到场时间）}
+  - {from: waiting_repair, to: handling, by: 维修/质量/班组长到场处置完成}
+  - {from: waiting_repair, to: investigating, by: 叫错人被退回}
+  - {from: recovery_check, to: normal_production, by: 恢复确认通过（上一个班：等待下一个随机事件）}
+  - {from: recovery_check, to: review, by: 恢复确认通过（单个异常关卡结束）}
+  - {from: normal_production, to: review, by: 班次结束 / 关卡目标完成}
+  - {from: "*", to: safety_terminated, by: 触发一票否决的安全规则}
+  - {from: safety_terminated, to: review, by: 自动进入复盘，本局判定失败}
+  - {from: review, to: completed, by: 复盘生成完毕}
+
+# 二、设备模式（训练局状态之外的设备层状态）
+equipment_modes:
+  stopped: {label: 停机（未开机）, safe: true}
+  running: {label: 运行中, safe: false}
+  alarm_stop: {label: 报警停机, safe: false}
+  ready: {label: 待机（报警已复位）, safe: false}
+  paused: {label: 暂停, safe: true}
+  estopped: {label: 急停, safe: true}
+
+# 三、关卡草稿
+draft_states:
+  collecting: {label: 采集中}
+  ai_draft: {label: AI 草稿}
+  validating: {label: 结构校验}
+  pending_review: {label: 待审核}
+  published: {label: 已发布}
+  needs_recheck: {label: 待复核}
+  retired: {label: 已下线}
+
+draft_transitions:
+  - {from: collecting, to: ai_draft, by: AI 生成草稿（或手工录入 YAML）}
+  - {from: ai_draft, to: validating, by: 提交校验}
+  - {from: validating, to: pending_review, by: 格式、引用、引擎回放全部通过}
+  - {from: validating, to: ai_draft, by: 校验不通过，修改后重新提交}
+  - {from: pending_review, to: published, by: 设备、质量、EHS 三方审核全部通过}
+  - {from: pending_review, to: ai_draft, by: 任一审核不通过，退回并生成新版本}
+  - {from: published, to: needs_recheck, by: SOP、设备或引用的规则变更}
+  - {from: needs_recheck, to: published, by: 复核通过}
+  - {from: needs_recheck, to: retired, by: 下线}
+  - {from: published, to: retired, by: 下线}

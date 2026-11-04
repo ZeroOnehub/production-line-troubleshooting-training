@@ -1,0 +1,35 @@
+id: SCN-SHIFT
+version: 1
+type: shift
+layer: 4
+station: OP30
+title: 上一个班
+summary: 把一个班压缩成 15 分钟：正常生产中随机触发 2 到 3 个异常，中途插入一次换型（A → B）和一次缺料。段位晋级考核关。
+story: 早班开工。今天的计划是先做 A 型，中途按班组长通知切 B 型。按节拍把班上完。
+objective: 完成本班产量；无安全违规、无 NG 流出、停线总时长低于阈值
+real_time_limit_s: 900          # 现实时间 15 分钟（前端倒计时；引擎判定不依赖墙钟）
+target_pieces: 16
+events:
+  random_faults:
+    count: [2, 3]
+    pool: [SCN-T101, SCN-T102, SCN-T103, SCN-T104, SCN-T105, SCN-T107, SCN-T108, SCN-T110]
+    pieces: [3, 6, 12, 14]        # 候选触发件号，按抽取顺序取前 N 个
+  changeover:
+    scenario: SCN-CHG-AB
+    at_piece: 8
+  material_shortage:
+    scenario: SCN-T109
+    root_cause: RC-T109-A
+    at_piece: 10
+pass:
+  no_safety_violation: true
+  no_ng_escape: true
+  max_downtime_factor: 1.6       # 停线总时长 ≤ 标准路径停线时长 × 1.6
+root_causes: []
+distractors:
+  - {target: pressure_gauge, value: 0.52, text: 压力表读数 0.52 MPa，指针在绿区，比平时略低一点。}
+  - {target: bit_counter, text: 批头使用次数 4100 / 5000 次（示意值），还没到寿命。}
+rules: [R-SAF-01, R-SAF-02, R-QLT-02, R-HDL-03, R-HDL-07, R-QLT-01]
+negative_cases: []
+author: 示例师傅
+reviewed_by: [equipment, quality, ehs]

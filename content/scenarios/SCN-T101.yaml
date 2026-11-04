@@ -1,0 +1,115 @@
+id: SCN-T101
+version: 1
+type: alarm
+layer: 3
+station: OP30
+title: 拧紧扭矩低
+alarm: T-101
+summary: 正常生产中 HMI 报 T-101 拧紧扭矩低。从批头磨损、螺栓混料、程序号未切换中随机抽一个根因。
+story: 生产 A 型。第 3 件拧到一半，三色灯变红，HMI 弹出报警。
+objective: 找到根因并正确处置，NG 件隔离，恢复生产
+event: {at_piece: 3}
+root_causes:
+  - id: RC-T101-A
+    name: 批头磨损
+    weight: 0.5
+    in_operator_scope: true
+    setup: {bit: worn, bit_count: 4960}
+    clues:
+      - {indicator: hmi.torque_result, value: "NG 低于下限"}
+      - {indicator: bit_counter, value: "4960 / 5000 次"}
+      - {component: bit, state: worn, view: closeup/bit_worn.webp}
+    direction: 别光盯着屏幕，去拧紧枪那头凑近看看。
+    leak_keywords: [磨损, 磨圆, 磨平, 换批头, 批头坏, 批头不行, 寿命到了]
+    correct_path:
+      - {action: inspect, target: hmi}
+      - {action: inspect, target: bit}
+      - {action: pause_equipment}
+      - {action: isolate_ng_part}
+      - {action: replace_bit}
+      - {action: reset_alarm}
+      - {action: first_piece_check}
+      - {action: resume}
+  - id: RC-T101-B
+    name: 螺栓混料
+    weight: 0.3
+    in_operator_scope: false
+    setup: {bolt_box: mixed}
+    clues:
+      - {indicator: hmi.torque_result, value: "NG 低于下限"}
+      - {component: bolt_box, state: mixed, view: closeup/bolt_box_mixed.webp}
+    andon_target: quality
+    repair: {bolt_box: normal}
+    repair_first_piece: true
+    direction: 枪和程序都先放一放，看看你手边拿的料。
+    leak_keywords: [混料, 混了, 长短不一, 螺栓不一样, 不同规格, 料不对]
+    correct_path:
+      - {action: inspect, target: hmi}
+      - {action: inspect, target: bolt_box}
+      - {action: pause_equipment}
+      - {action: isolate_ng_part}
+      - {action: isolate_bolt_box}
+      - {action: pull_andon, target: quality}
+      - {action: andon_report, elements: all}
+      - {action: wait}
+      - {action: first_piece_check}
+      - {action: resume}
+  - id: RC-T101-C
+    name: 换型后程序号未切换
+    weight: 0.2
+    in_operator_scope: false
+    setup: {hmi.program: "@other_program"}
+    match: {fact: program_mismatch, eq: true}
+    clues:
+      - {indicator: hmi.torque_result, value: "NG 低于下限"}
+      - {indicator: hmi.program, value: "型号 A / 程序号 P02（不匹配）"}
+    andon_target: team_leader
+    repair: {hmi.program: "@order_program"}
+    repair_first_piece: true
+    direction: 屏幕上不止报警那一行，把型号和程序那几栏对一对。
+    leak_keywords: [程序号不对, 程序没切, 程序号没切换, P02, 程序错了, 程序不匹配]
+    correct_path:
+      - {action: inspect, target: hmi}
+      - {action: pause_equipment}
+      - {action: isolate_ng_part}
+      - {action: pull_andon, target: team_leader}
+      - {action: andon_report, elements: all}
+      - {action: wait}
+      - {action: first_piece_check}
+      - {action: resume}
+distractors:
+  - {target: pressure_gauge, value: 0.52, text: 压力表读数 0.52 MPa，指针在绿区，比平时略低一点。}
+  - {target: socket, text: 套筒外表面有几道旧划痕，安装到位，定位销卡紧。}
+  - {target: fixture_seat, text: 夹具定位面有一点油渍反光，工件贴合到位。}
+rules: [R-SAF-01, R-SAF-02, R-HDL-03, R-QLT-02, R-HDL-07, R-QLT-03, R-PRM-08]
+negative_cases:
+  - name: 不暂停直接换批头
+    root_cause: RC-T101-A
+    path: [{action: inspect, target: hmi}, {action: replace_bit}]
+    expect: {state: safety_terminated, violations: [R-SAF-02]}
+  - name: NG 件没隔离就恢复生产
+    root_cause: RC-T101-A
+    path: [{action: inspect, target: hmi}, {action: pause_equipment}, {action: replace_bit}, {action: reset_alarm}, {action: first_piece_check}]
+    expect: {violations: [R-QLT-02]}
+  - name: 换完批头不打首件
+    root_cause: RC-T101-A
+    path: [{action: inspect, target: hmi}, {action: pause_equipment}, {action: isolate_ng_part}, {action: replace_bit}, {action: reset_alarm}, {action: resume}]
+    expect: {violations: [R-HDL-07]}
+  - name: 混料反复复位
+    root_cause: RC-T101-B
+    path: [{action: inspect, target: hmi}, {action: pause_equipment}, {action: isolate_ng_part}, {action: reset_alarm}, {action: first_piece_check}, {action: pause_equipment}, {action: isolate_ng_part}, {action: reset_alarm}, {action: first_piece_check}, {action: pause_equipment}, {action: isolate_ng_part}, {action: reset_alarm}]
+    expect: {violations: [R-HDL-03, R-QLT-03]}
+  - name: 报警复现后不暂停就伸手
+    root_cause: RC-T101-B
+    path: [{action: inspect, target: hmi}, {action: pause_equipment}, {action: isolate_ng_part}, {action: reset_alarm}, {action: first_piece_check}, {action: isolate_ng_part}]
+    expect: {state: safety_terminated, violations: [R-SAF-01]}
+  - name: 自己改程序号
+    root_cause: RC-T101-C
+    path: [{action: inspect, target: hmi}, {action: hmi_select_program, program: P01}]
+    expect: {violations: [R-PRM-08]}
+  - name: 混料叫了维修
+    root_cause: RC-T101-B
+    path: [{action: inspect, target: hmi}, {action: pause_equipment}, {action: isolate_ng_part}, {action: isolate_bolt_box}, {action: pull_andon, target: maintenance}, {action: andon_report, elements: all}, {action: wait}]
+    expect: {violations: [R-HDL-05]}
+author: 示例师傅
+reviewed_by: [equipment, quality, ehs]

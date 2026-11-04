@@ -1,0 +1,39 @@
+id: SCN-TOUR
+version: 1
+type: tour
+layer: 1
+station: OP30
+title: 认识工位
+summary: 自由探索 OP30 全景，点亮 12 个部件和安全装置的图鉴，分步观看一个完整的工作循环。
+story: 第一天上岗。带班师傅说：“先别急着上手，把这个工位上每样东西是干什么的认全了，再看一遍它是怎么干活的。”
+objective: 点亮全部 12 个图鉴条目，并看完工作循环的 7 个步骤
+codex:
+  - {id: gun, name: 电动拧紧枪, targets: [gun_motor], desc: 按程序把 4 颗螺栓拧到规定扭矩和角度。枪身异常（异味、发烫、异响）时不能使用。}
+  - {id: bit, name: 批头, targets: [bit], desc: 易耗件。磨损会导致扭矩低；更换前必须暂停设备，换完要打首件。}
+  - {id: socket, name: 套筒, targets: [socket], desc: 连接批头与枪轴。松动会导致角度超差；装紧前必须暂停设备。}
+  - {id: controller, name: 拧紧控制器, targets: [controller_link], desc: 保存拧紧程序、监控扭矩与角度。通讯问题只能由维修处理，不要插拔线缆。}
+  - {id: fixture, name: 工件定位夹具, targets: [fixture_seat, pos_sensor, locating_block], desc: 气缸夹紧工件，到位传感器确认工件放好。手伸进夹具前必须暂停或急停。}
+  - {id: scanner, name: 扫码枪, targets: [scan_window, scanner_cable], desc: 读取工件条码用于追溯和防错。窗口脏了可以自己擦，线缆问题叫维修。}
+  - {id: light_curtain, name: 安全光栅, targets: [curtain_mirror, curtain_zone], desc: 检测到有东西进入工作区就停机。任何人不得屏蔽或短接。}
+  - {id: tower_light, name: 三色灯, targets: [tower_light], desc: 绿灯正常生产，黄灯暂停或待机，红灯报警或急停。}
+  - {id: hmi, name: HMI 触摸屏, targets: [hmi, tighten_curve, bit_counter], desc: 显示报警码、拧紧结果、型号、程序号和计数。报警先看这里。}
+  - {id: estop, name: 急停按钮, targets: [estop_button], desc: 有危险立即拍下。复位前必须确认周边安全、设备无异常。}
+  - {id: andon_button, name: Andon 呼叫按钮, targets: [andon_button], desc: 处理不了或不在权限内的问题，拉 Andon 叫维修、质量员或班组长。}
+  - {id: air_unit, name: 气源三联件与压力表, targets: [pressure_gauge, hand_valve], desc: 给夹具供气。压力表指针要在绿区；操作工只能开关工位手阀，不能调调压阀。}
+cycle_steps:
+  - {id: load, name: 上件, text: 从上料区取一件电机总成，放到夹具定位销上。}
+  - {id: scan, name: 扫码, text: 扫码枪读取工件条码，HMI 显示扫到的型号。}
+  - {id: clamp, name: 夹紧, text: 防错通过后气缸夹紧，到位传感器灯亮。}
+  - {id: tighten, name: 拧紧 4 颗螺栓, text: 拧紧枪按程序依次拧紧 4 颗螺栓，控制器记录每颗的扭矩和角度。}
+  - {id: judge, name: 结果判定, text: 4 颗全部 OK，HMI 显示合格；任何一颗 NG 都会报警停机。}
+  - {id: release, name: 松开, text: 气缸松开，三色灯保持绿灯。}
+  - {id: unload, name: 下件, text: 合格件放到下游输送线，流向 OP40。}
+root_causes: []
+distractors: []
+rules: [R-SAF-01, R-SAF-03]
+negative_cases:
+  - name: 认识工位时屏蔽光栅
+    path: [{action: bypass_safety}]
+    expect: {state: safety_terminated, violations: [R-SAF-03]}
+author: 示例师傅
+reviewed_by: [equipment, quality, ehs]

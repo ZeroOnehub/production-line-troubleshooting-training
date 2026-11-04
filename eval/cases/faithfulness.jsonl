@@ -1,0 +1,20 @@
+{"id": "FAITH-001", "category": "faithfulness", "input": "看看批头", "context": {"scenario": "SCN-T101", "root_cause": "RC-T101-A"}, "target": "bit", "source": "content-derived", "split": "test"}
+{"id": "FAITH-002", "category": "faithfulness", "input": "看看螺栓料盒", "context": {"scenario": "SCN-T101", "root_cause": "RC-T101-B"}, "target": "bolt_box", "source": "content-derived", "split": "test"}
+{"id": "FAITH-003", "category": "faithfulness", "input": "看看套筒", "context": {"scenario": "SCN-T101", "root_cause": "RC-T101-A"}, "target": "socket", "source": "content-derived", "split": "test"}
+{"id": "FAITH-004", "category": "faithfulness", "input": "看看HMI 触摸屏", "context": {"scenario": "SCN-T101", "root_cause": "RC-T101-C"}, "target": "hmi", "source": "content-derived", "split": "dev"}
+{"id": "FAITH-005", "category": "faithfulness", "input": "看看已拧螺栓", "context": {"scenario": "SCN-T102", "root_cause": "RC-T102-A"}, "target": "bolt_seat", "source": "content-derived", "split": "dev"}
+{"id": "FAITH-006", "category": "faithfulness", "input": "看看套筒", "context": {"scenario": "SCN-T102", "root_cause": "RC-T102-B"}, "target": "socket", "source": "content-derived", "split": "dev"}
+{"id": "FAITH-007", "category": "faithfulness", "input": "看看螺纹孔", "context": {"scenario": "SCN-T102", "root_cause": "RC-T102-C"}, "target": "thread_hole", "source": "content-derived", "split": "dev"}
+{"id": "FAITH-008", "category": "faithfulness", "input": "看看扫码窗口", "context": {"scenario": "SCN-T103", "root_cause": "RC-T103-A"}, "target": "scan_window", "source": "content-derived", "split": "test"}
+{"id": "FAITH-009", "category": "faithfulness", "input": "看看条码标签", "context": {"scenario": "SCN-T103", "root_cause": "RC-T103-B"}, "target": "label", "source": "content-derived", "split": "test"}
+{"id": "FAITH-010", "category": "faithfulness", "input": "看看扫码枪线缆", "context": {"scenario": "SCN-T103", "root_cause": "RC-T103-C"}, "target": "scanner_cable", "source": "content-derived", "split": "dev"}
+{"id": "FAITH-011", "category": "faithfulness", "input": "看看夹具定位面", "context": {"scenario": "SCN-T104", "root_cause": "RC-T104-B"}, "target": "fixture_seat", "source": "content-derived", "split": "test"}
+{"id": "FAITH-012", "category": "faithfulness", "input": "看看压力表", "context": {"scenario": "SCN-T104", "root_cause": "RC-T104-C"}, "target": "pressure_gauge", "source": "content-derived", "split": "test"}
+{"id": "FAITH-013", "category": "faithfulness", "input": "看看到位传感器", "context": {"scenario": "SCN-T104", "root_cause": "RC-T104-D"}, "target": "pos_sensor", "source": "content-derived", "split": "dev"}
+{"id": "FAITH-014", "category": "faithfulness", "input": "看看光栅检测区域", "context": {"scenario": "SCN-T105", "root_cause": "RC-T105-A"}, "target": "curtain_zone", "source": "content-derived", "split": "test"}
+{"id": "FAITH-015", "category": "faithfulness", "input": "看看光栅镜面", "context": {"scenario": "SCN-T105", "root_cause": "RC-T105-C"}, "target": "curtain_mirror", "source": "content-derived", "split": "test"}
+{"id": "FAITH-016", "category": "faithfulness", "input": "看看工位手阀", "context": {"scenario": "SCN-T107", "root_cause": "RC-T107-A"}, "target": "hand_valve", "source": "content-derived", "split": "test"}
+{"id": "FAITH-017", "category": "faithfulness", "input": "看看控制器通讯", "context": {"scenario": "SCN-T108", "root_cause": "RC-T108-B"}, "target": "controller_link", "source": "content-derived", "split": "test"}
+{"id": "FAITH-018", "category": "faithfulness", "input": "看看料盒料位传感器", "context": {"scenario": "SCN-T109", "root_cause": "RC-T109-B"}, "target": "bolt_level_sensor", "source": "content-derived", "split": "dev"}
+{"id": "FAITH-019", "category": "faithfulness", "input": "看看急停按钮", "context": {"scenario": "SCN-T110", "root_cause": "RC-T110-B"}, "target": "estop_button", "source": "content-derived", "split": "test"}
+{"id": "FAITH-020", "category": "faithfulness", "input": "看看上料区来料", "context": {"scenario": "SCN-T106", "root_cause": "RC-T106-A"}, "target": "feed_material", "source": "content-derived", "split": "dev"}

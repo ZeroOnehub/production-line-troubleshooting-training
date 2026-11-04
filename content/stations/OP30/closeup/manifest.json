@@ -1,0 +1,359 @@
+{
+ "bit_normal": {
+  "name": "bit_normal",
+  "model": "qwen-image-2.1-turbo",
+  "mode": "text-to-image",
+  "prompt": "Macro close-up of a Phillips cross-tip screwdriver bit mounted in the socket of an industrial electric nutrunner, the cross tip is sharp with crisp clean edges. Realistic industrial close-up photo taken at an automotive parts assembly workstation, neutral grey background, soft even factory lighting, sharp focus. No text, no letters, no numbers, no logos, no brand names, no people.",
+  "seconds": 11.1
+ },
+ "socket_normal": {
+  "name": "socket_normal",
+  "model": "qwen-image-2.1-turbo",
+  "mode": "text-to-image",
+  "prompt": "Close-up of a steel hexagonal socket fitted onto the output spindle of an industrial electric nutrunner, fully seated with no gap, locking pin engaged. Realistic industrial close-up photo taken at an automotive parts assembly workstation, neutral grey background, soft even factory lighting, sharp focus. No text, no letters, no numbers, no logos, no brand names, no people.",
+  "seconds": 12.3
+ },
+ "gun_normal": {
+  "name": "gun_normal",
+  "model": "qwen-image-2.1-turbo",
+  "mode": "text-to-image",
+  "prompt": "An orange and dark grey industrial electric nutrunner tool hanging vertically from a spring balancer above a workbench, clean housing with cooling vents. Realistic industrial close-up photo taken at an automotive parts assembly workstation, neutral grey background, soft even factory lighting, sharp focus. No text, no letters, no numbers, no logos, no brand names, no people.",
+  "seconds": 11.9
+ },
+ "controller_ok": {
+  "name": "controller_ok",
+  "model": "qwen-image-2.1-turbo",
+  "mode": "text-to-image",
+  "prompt": "Front panel of a grey industrial tightening controller box mounted next to a workbench, small blank display, a row of round status LEDs with the communication LED glowing green. Realistic industrial close-up photo taken at an automotive parts assembly workstation, neutral grey background, soft even factory lighting, sharp focus. No text, no letters, no numbers, no logos, no brand names, no people.",
+  "seconds": 12.3
+ },
+ "fixture_normal": {
+  "name": "fixture_normal",
+  "model": "qwen-image-2.1-turbo",
+  "mode": "text-to-image",
+  "prompt": "A pneumatic clamping fixture on a steel workbench holding a machined aluminum motor housing, the part sits flat and fully seated on two locating pins, yellow clamp arms on both sides. Realistic industrial close-up photo taken at an automotive parts assembly workstation, neutral grey background, soft even factory lighting, sharp focus. No text, no letters, no numbers, no logos, no brand names, no people.",
+  "seconds": 10.7
+ },
+ "sensor_normal": {
+  "name": "sensor_normal",
+  "model": "qwen-image-2.1-turbo",
+  "mode": "text-to-image",
+  "prompt": "Close-up of a small cylindrical inductive proximity sensor mounted on a steel clamping fixture next to an aluminum part, the sensor's indicator LED glowing amber. Realistic industrial close-up photo taken at an automotive parts assembly workstation, neutral grey background, soft even factory lighting, sharp focus. No text, no letters, no numbers, no logos, no brand names, no people.",
+  "seconds": 12.5
+ },
+ "locating_block_A": {
+  "name": "locating_block_A",
+  "model": "qwen-image-2.1-turbo",
+  "mode": "text-to-image",
+  "prompt": "Close-up of a blue anodized aluminum locating block bolted onto a steel clamping fixture. Realistic industrial close-up photo taken at an automotive parts assembly workstation, neutral grey background, soft even factory lighting, sharp focus. No text, no letters, no numbers, no logos, no brand names, no people.",
+  "seconds": 11.1
+ },
+ "scan_window_clean": {
+  "name": "scan_window_clean",
+  "model": "qwen-image-2.1-turbo",
+  "mode": "text-to-image",
+  "prompt": "A handheld industrial barcode scanner resting in a metal holder, its red scan window is clean, glossy and transparent. Realistic industrial close-up photo taken at an automotive parts assembly workstation, neutral grey background, soft even factory lighting, sharp focus. No text, no letters, no numbers, no logos, no brand names, no people.",
+  "seconds": 13.1
+ },
+ "scanner_cable_ok": {
+  "name": "scanner_cable_ok",
+  "model": "qwen-image-2.1-turbo",
+  "mode": "text-to-image",
+  "prompt": "Close-up of a black industrial data cable connector fully and firmly plugged into the socket at the bottom of a handheld barcode scanner. Realistic industrial close-up photo taken at an automotive parts assembly workstation, neutral grey background, soft even factory lighting, sharp focus. No text, no letters, no numbers, no logos, no brand names, no people.",
+  "seconds": 10.2
+ },
+ "curtain_mirror_clean": {
+  "name": "curtain_mirror_clean",
+  "model": "qwen-image-2.1-turbo",
+  "mode": "text-to-image",
+  "prompt": "Close-up of the front window of a yellow industrial safety light curtain column, the dark front window is clean, a small alignment LED at the bottom glowing green. Realistic industrial close-up photo taken at an automotive parts assembly workstation, neutral grey background, soft even factory lighting, sharp focus. No text, no letters, no numbers, no logos, no brand names, no people.",
+  "seconds": 9.8
+ },
+ "curtain_zone_clear": {
+  "name": "curtain_zone_clear",
+  "model": "qwen-image-2.1-turbo",
+  "mode": "text-to-image",
+  "prompt": "Front view of a workstation opening between two vertical yellow safety light curtain columns, the space between them is completely clear, steel workbench behind. Realistic industrial close-up photo taken at an automotive parts assembly workstation, neutral grey background, soft even factory lighting, sharp focus. No text, no letters, no numbers, no logos, no brand names, no people.",
+  "seconds": 12.5
+ },
+ "estop_released": {
+  "name": "estop_released",
+  "model": "qwen-image-2.1-turbo",
+  "mode": "text-to-image",
+  "prompt": "Close-up of a red mushroom-head emergency stop button on a yellow push-button housing, the button is raised in the released position with the grey collar visible below the red cap. Realistic industrial close-up photo taken at an automotive parts assembly workstation, neutral grey background, soft even factory lighting, sharp focus. No text, no letters, no numbers, no logos, no brand names, no people.",
+  "seconds": 9.9
+ },
+ "gauge_normal": {
+  "name": "gauge_normal",
+  "model": "qwen-image-2.1-turbo",
+  "mode": "text-to-image",
+  "prompt": "Close-up of a round pneumatic pressure gauge on an air filter-regulator unit, the dial has red, yellow and green zones without any numbers, the needle points well inside the green zone. Realistic industrial close-up photo taken at an automotive parts assembly workstation, neutral grey background, soft even factory lighting, sharp focus. No text, no letters, no numbers, no logos, no brand names, no people.",
+  "seconds": 11.0
+ },
+ "valve_open": {
+  "name": "valve_open",
+  "model": "qwen-image-2.1-turbo",
+  "mode": "text-to-image",
+  "prompt": "Close-up of a quarter-turn brass ball valve on a compressed air pipe with a red lever handle, the handle is aligned parallel with the pipe (fully open). Realistic industrial close-up photo taken at an automotive parts assembly workstation, neutral grey background, soft even factory lighting, sharp focus. No text, no letters, no numbers, no logos, no brand names, no people.",
+  "seconds": 11.0
+ },
+ "bolt_box_normal": {
+  "name": "bolt_box_normal",
+  "model": "qwen-image-2.1-turbo",
+  "mode": "text-to-image",
+  "prompt": "Top view of a blue plastic parts bin filled with many identical short steel hex flange bolts, all the same size. Realistic industrial close-up photo taken at an automotive parts assembly workstation, neutral grey background, soft even factory lighting, sharp focus. No text, no letters, no numbers, no logos, no brand names, no people.",
+  "seconds": 10.8
+ },
+ "level_sensor_normal": {
+  "name": "level_sensor_normal",
+  "model": "qwen-image-2.1-turbo",
+  "mode": "text-to-image",
+  "prompt": "A blue plastic bin full of identical steel bolts with a small level sensor mounted on its side, the sensor LED glowing green. Realistic industrial close-up photo taken at an automotive parts assembly workstation, neutral grey background, soft even factory lighting, sharp focus. No text, no letters, no numbers, no logos, no brand names, no people.",
+  "seconds": 12.8
+ },
+ "feed_normal": {
+  "name": "feed_normal",
+  "model": "qwen-image-2.1-turbo",
+  "mode": "text-to-image",
+  "prompt": "A metal parts rack holding a row of identical machined aluminum motor housings, each with a small blue tag. Realistic industrial close-up photo taken at an automotive parts assembly workstation, neutral grey background, soft even factory lighting, sharp focus. No text, no letters, no numbers, no logos, no brand names, no people.",
+  "seconds": 10.7
+ },
+ "label_normal": {
+  "name": "label_normal",
+  "model": "qwen-image-2.1-turbo",
+  "mode": "text-to-image",
+  "prompt": "Close-up of a white 2D data-matrix code sticker (square dot pattern, no human-readable characters) on a machined aluminum part, the sticker is intact and clean. Realistic industrial close-up photo taken at an automotive parts assembly workstation, neutral grey background, soft even factory lighting, sharp focus. No text, no letters, no numbers, no logos, no brand names, no people.",
+  "seconds": 11.0
+ },
+ "thread_clean": {
+  "name": "thread_clean",
+  "model": "qwen-image-2.1-turbo",
+  "mode": "text-to-image",
+  "prompt": "Close-up of a machined aluminum flange with four clean threaded holes. Realistic industrial close-up photo taken at an automotive parts assembly workstation, neutral grey background, soft even factory lighting, sharp focus. No text, no letters, no numbers, no logos, no brand names, no people.",
+  "seconds": 10.2
+ },
+ "bolt_seat_normal": {
+  "name": "bolt_seat_normal",
+  "model": "qwen-image-2.1-turbo",
+  "mode": "text-to-image",
+  "prompt": "Close-up of four steel hex flange bolts tightened flush and straight into a machined aluminum flange. Realistic industrial close-up photo taken at an automotive parts assembly workstation, neutral grey background, soft even factory lighting, sharp focus. No text, no letters, no numbers, no logos, no brand names, no people.",
+  "seconds": 10.1
+ },
+ "tower_light": {
+  "name": "tower_light",
+  "model": "qwen-image-2.1-turbo",
+  "mode": "text-to-image",
+  "prompt": "A red, yellow and green industrial stack signal tower light on a short pole mounted on a machine, all three segments visible. Realistic industrial close-up photo taken at an automotive parts assembly workstation, neutral grey background, soft even factory lighting, sharp focus. No text, no letters, no numbers, no logos, no brand names, no people.",
+  "seconds": 11.0
+ },
+ "air_unit": {
+  "name": "air_unit",
+  "model": "qwen-image-2.1-turbo",
+  "mode": "text-to-image",
+  "prompt": "A compressed air filter-regulator-lubricator (FRL) unit mounted on the side of a steel workbench, with a round pressure gauge without numbers, a clear filter bowl and an oil bowl. Realistic industrial close-up photo taken at an automotive parts assembly workstation, neutral grey background, soft even factory lighting, sharp focus. No text, no letters, no numbers, no logos, no brand names, no people.",
+  "seconds": 13.2
+ },
+ "ng_bin": {
+  "name": "ng_bin",
+  "model": "qwen-image-2.1-turbo",
+  "mode": "text-to-image",
+  "prompt": "A red plastic reject bin standing on a factory floor next to a workbench. Realistic industrial close-up photo taken at an automotive parts assembly workstation, neutral grey background, soft even factory lighting, sharp focus. No text, no letters, no numbers, no logos, no brand names, no people.",
+  "seconds": 11.6
+ },
+ "ng_label": {
+  "name": "ng_label",
+  "model": "qwen-image-2.1-turbo",
+  "mode": "text-to-image",
+  "prompt": "A pad of blank red reject tags with a hole and a string, lying next to a red reject bin, the tags are blank. Realistic industrial close-up photo taken at an automotive parts assembly workstation, neutral grey background, soft even factory lighting, sharp focus. No text, no letters, no numbers, no logos, no brand names, no people.",
+  "seconds": 10.6
+ },
+ "first_piece_record": {
+  "name": "first_piece_record",
+  "model": "qwen-image-2.1-turbo",
+  "mode": "text-to-image",
+  "prompt": "A clipboard with a blank inspection record form (only empty table lines and boxes, no writing) hanging on a workstation board. Realistic industrial close-up photo taken at an automotive parts assembly workstation, neutral grey background, soft even factory lighting, sharp focus. No text, no letters, no numbers, no logos, no brand names, no people.",
+  "seconds": 12.1
+ },
+ "checklist_record": {
+  "name": "checklist_record",
+  "model": "qwen-image-2.1-turbo",
+  "mode": "text-to-image",
+  "prompt": "A clipboard with a blank daily checklist form with eight empty check boxes (no writing) on a workbench. Realistic industrial close-up photo taken at an automotive parts assembly workstation, neutral grey background, soft even factory lighting, sharp focus. No text, no letters, no numbers, no logos, no brand names, no people.",
+  "seconds": 11.7
+ },
+ "andon_button": {
+  "name": "andon_button",
+  "model": "qwen-image-2.1-turbo",
+  "mode": "text-to-image",
+  "prompt": "A blue industrial andon call push button box mounted on a grey steel pillar next to a workstation. Realistic industrial close-up photo taken at an automotive parts assembly workstation, neutral grey background, soft even factory lighting, sharp focus. No text, no letters, no numbers, no logos, no brand names, no people.",
+  "seconds": 12.3
+ },
+ "electrical_cabinet": {
+  "name": "electrical_cabinet",
+  "model": "qwen-image-2.1-turbo",
+  "mode": "text-to-image",
+  "prompt": "A closed light grey industrial electrical cabinet with a locked door handle and a yellow triangular high-voltage pictogram sticker (symbol only, no words). Realistic industrial close-up photo taken at an automotive parts assembly workstation, neutral grey background, soft even factory lighting, sharp focus. No text, no letters, no numbers, no logos, no brand names, no people.",
+  "seconds": 11.5
+ },
+ "bit_worn": {
+  "name": "bit_worn",
+  "model": "qwen-image-2.1-turbo",
+  "mode": "image-edit（基于 bit_normal）",
+  "prompt": "Same photo, same camera angle, same composition and lighting; change only what is described, everything else unchanged. No text. The tip of the screwdriver bit is now badly worn down: the cross wings are gone, the tip is a blunt rounded stub, and the worn end is bright shiny metal with chips missing.",
+  "seconds": 17.9
+ },
+ "socket_loose": {
+  "name": "socket_loose",
+  "model": "qwen-image-2.1-turbo",
+  "mode": "image-edit（基于 socket_normal）",
+  "prompt": "Same photo, same camera angle, same composition and lighting; change only what is described, everything else unchanged. No text. The socket has now slipped down and hangs loose and visibly tilted on the spindle, leaving a wide bright gap ring of exposed shaft between the socket and the tool, the locking pin sticks out.",
+  "seconds": 20.2
+ },
+ "gun_abnormal": {
+  "name": "gun_abnormal",
+  "model": "qwen-image-2.1-turbo",
+  "mode": "image-edit（基于 gun_normal）",
+  "prompt": "Same photo, same camera angle, same composition and lighting; change only what is described, everything else unchanged. No text. Thin grey smoke is rising from the cooling vents of the nutrunner motor housing, with dark scorch discoloration around the vents.",
+  "seconds": 19.4
+ },
+ "controller_lost": {
+  "name": "controller_lost",
+  "model": "qwen-image-2.1-turbo",
+  "mode": "image-edit（基于 controller_ok）",
+  "prompt": "Same photo, same camera angle, same composition and lighting; change only what is described, everything else unchanged. No text. The communication LED is now glowing red instead of green, and the small display shows a red warning triangle symbol only.",
+  "seconds": 22.2
+ },
+ "fixture_debris": {
+  "name": "fixture_debris",
+  "model": "qwen-image-2.1-turbo",
+  "mode": "image-edit（基于 fixture_normal）",
+  "prompt": "Same photo, same camera angle, same composition and lighting; change only what is described, everything else unchanged. No text. Several small shiny curled metal chips are scattered on the locating surface under the part, and the part sits slightly raised.",
+  "seconds": 20.7
+ },
+ "fixture_misplaced": {
+  "name": "fixture_misplaced",
+  "model": "qwen-image-2.1-turbo",
+  "mode": "image-edit（基于 fixture_normal）",
+  "prompt": "Same photo, same camera angle, same composition and lighting; change only what is described, everything else unchanged. No text. The aluminum part is now tilted, one side lifted off the locating pins, clearly not seated in the fixture.",
+  "seconds": 18.5
+ },
+ "sensor_fault": {
+  "name": "sensor_fault",
+  "model": "qwen-image-2.1-turbo",
+  "mode": "image-edit（基于 sensor_normal）",
+  "prompt": "Same photo, same camera angle, same composition and lighting; change only what is described, everything else unchanged. No text. The proximity sensor's indicator LED is now completely dark (off), not glowing.",
+  "seconds": 20.0
+ },
+ "locating_block_B": {
+  "name": "locating_block_B",
+  "model": "qwen-image-2.1-turbo",
+  "mode": "image-edit（基于 locating_block_A）",
+  "prompt": "Same photo, same camera angle, same composition and lighting; change only what is described, everything else unchanged. No text. The locating block is now bright yellow anodized instead of blue, with a taller stepped shape.",
+  "seconds": 20.8
+ },
+ "scan_window_dirty": {
+  "name": "scan_window_dirty",
+  "model": "qwen-image-2.1-turbo",
+  "mode": "image-edit（基于 scan_window_clean）",
+  "prompt": "Same photo, same camera angle, same composition and lighting; change only what is described, everything else unchanged. No text. The red scan window is now covered with greasy smudges, fingerprints and dust, looking cloudy.",
+  "seconds": 19.2
+ },
+ "scanner_cable_loose": {
+  "name": "scanner_cable_loose",
+  "model": "qwen-image-2.1-turbo",
+  "mode": "image-edit（基于 scanner_cable_ok）",
+  "prompt": "Same photo, same camera angle, same composition and lighting; change only what is described, everything else unchanged. No text. The cable connector is now half pulled out of the socket, a strip of exposed gold metal pins is visible.",
+  "seconds": 18.3
+ },
+ "curtain_mirror_dirty": {
+  "name": "curtain_mirror_dirty",
+  "model": "qwen-image-2.1-turbo",
+  "mode": "image-edit（基于 curtain_mirror_clean）",
+  "prompt": "Same photo, same camera angle, same composition and lighting; change only what is described, everything else unchanged. No text. The front window is now covered with oily mist and dust, and the alignment LED is glowing amber.",
+  "seconds": 18.0
+ },
+ "curtain_mirror_misaligned": {
+  "name": "curtain_mirror_misaligned",
+  "model": "qwen-image-2.1-turbo",
+  "mode": "image-edit（基于 curtain_mirror_clean）",
+  "prompt": "Same photo, same camera angle, same composition and lighting; change only what is described, everything else unchanged. No text. The light curtain column is now visibly tilted to one side on a bent mounting bracket, and the alignment LED is glowing red.",
+  "seconds": 17.3
+ },
+ "curtain_zone_blocked": {
+  "name": "curtain_zone_blocked",
+  "model": "qwen-image-2.1-turbo",
+  "mode": "image-edit（基于 curtain_zone_clear）",
+  "prompt": "Same photo, same camera angle, same composition and lighting; change only what is described, everything else unchanged. No text. An empty blue plastic tote bin is now placed on the floor/bench edge between the two light curtain columns, blocking the opening.",
+  "seconds": 17.9
+ },
+ "estop_pressed": {
+  "name": "estop_pressed",
+  "model": "qwen-image-2.1-turbo",
+  "mode": "image-edit（基于 estop_released）",
+  "prompt": "Same photo, same camera angle, same composition and lighting; change only what is described, everything else unchanged. No text. The red mushroom button is now pushed down and latched, sitting flush and low on the housing so the grey collar is hidden, and a small yellow-black hazard tag hangs from it.",
+  "seconds": 19.0
+ },
+ "gauge_low": {
+  "name": "gauge_low",
+  "model": "qwen-image-2.1-turbo",
+  "mode": "image-edit（基于 gauge_normal）",
+  "prompt": "Same photo, same camera angle, same composition and lighting; change only what is described, everything else unchanged. No text. The needle now points inside the red zone at the low end of the dial.",
+  "seconds": 18.1
+ },
+ "valve_half": {
+  "name": "valve_half",
+  "model": "qwen-image-2.1-turbo",
+  "mode": "image-edit（基于 valve_open）",
+  "prompt": "Same photo, same camera angle, same composition and lighting; change only what is described, everything else unchanged. No text. The red lever handle is now rotated 45 degrees across the pipe (half open).",
+  "seconds": 20.5
+ },
+ "bolt_box_mixed": {
+  "name": "bolt_box_mixed",
+  "model": "qwen-image-2.1-pro",
+  "mode": "image-edit（基于 bolt_box_normal）",
+  "prompt": "Same photo, same camera angle, same composition and lighting; change only what is described, everything else unchanged. No text. Keep all the existing short silver bolts exactly as they are. Add only five extra bolts lying on top: these five are much longer (about twice the length) and golden yellow, so they clearly stand out among the silver ones.",
+  "seconds": 30.1
+ },
+ "bolt_box_low": {
+  "name": "bolt_box_low",
+  "model": "qwen-image-2.1-turbo",
+  "mode": "image-edit（基于 bolt_box_normal）",
+  "prompt": "Same photo, same camera angle, same composition and lighting; change only what is described, everything else unchanged. No text. The bin is now almost empty, only five or six bolts left scattered on the bottom of the bin.",
+  "seconds": 25.1
+ },
+ "level_sensor_fault": {
+  "name": "level_sensor_fault",
+  "model": "qwen-image-2.1-turbo",
+  "mode": "image-edit（基于 level_sensor_normal）",
+  "prompt": "Same photo, same camera angle, same composition and lighting; change only what is described, everything else unchanged. No text. The level sensor LED is now glowing red, while the bin is still completely full of bolts.",
+  "seconds": 19.7
+ },
+ "feed_wrong": {
+  "name": "feed_wrong",
+  "model": "qwen-image-2.1-turbo",
+  "mode": "image-edit（基于 feed_normal）",
+  "prompt": "Same photo, same camera angle, same composition and lighting; change only what is described, everything else unchanged. No text. Two of the parts in the row are now a different, larger and taller model of housing with yellow tags instead of blue.",
+  "seconds": 22.8
+ },
+ "label_damaged": {
+  "name": "label_damaged",
+  "model": "qwen-image-2.1-turbo",
+  "mode": "image-edit（基于 label_normal）",
+  "prompt": "Same photo, same camera angle, same composition and lighting; change only what is described, everything else unchanged. No text. One corner of the sticker is now torn off and curled, a large part of the dot pattern is missing.",
+  "seconds": 23.2
+ },
+ "thread_debris": {
+  "name": "thread_debris",
+  "model": "qwen-image-2.1-turbo",
+  "mode": "image-edit（基于 thread_clean）",
+  "prompt": "Same photo, same camera angle, same composition and lighting; change only what is described, everything else unchanged. No text. One of the threaded holes is now clogged with curled shiny metal chips.",
+  "seconds": 20.0
+ },
+ "bolt_seat_cross": {
+  "name": "bolt_seat_cross",
+  "model": "qwen-image-2.1-pro",
+  "mode": "image-edit（基于 bolt_seat_normal）",
+  "prompt": "Same photo, same camera angle, same composition and lighting; change only what is described, everything else unchanged. No text. Change only the bolt at the bottom of the picture: it is now cross-threaded, sticking up out of its hole and tilted strongly to the right at about 25 degrees, with a dark gap visible under its head. The other three bolts stay flush and straight.",
+  "seconds": 27.6
+ }
+}

@@ -1,0 +1,12 @@
+# 运行依赖（版本与本机验证环境一致）
+fastapi==0.162.0
+starlette==1.10.0
+uvicorn[standard]==0.54.0
+sqlmodel==0.0.48
+SQLAlchemy==2.1.6
+pydantic==2.14.2
+PyYAML==6.0.3
+openai==3.42.1
+httpx==0.28.1
+python-multipart==0.0.33
+psycopg[binary]==3.3.7

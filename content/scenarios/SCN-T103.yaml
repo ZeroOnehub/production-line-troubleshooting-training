@@ -1,0 +1,85 @@
+id: SCN-T103
+version: 1
+type: alarm
+layer: 3
+station: OP30
+title: 扫码失败
+alarm: T-103
+summary: HMI 报 T-103 扫码失败。从扫码窗口脏、标签破损、扫码枪线缆松动中随机抽一个根因。
+story: 生产 A 型。第 3 件放上夹具后，扫码枪连扫几次都没读出来，HMI 报警。
+objective: 找到根因并正确处置，扫码成功后恢复生产
+event: {at_piece: 3}
+root_causes:
+  - id: RC-T103-A
+    name: 扫码窗口脏
+    weight: 0.45
+    in_operator_scope: true
+    setup: {scan_window: dirty}
+    clues:
+      - {indicator: hmi.alarm, value: "T-103 扫码失败"}
+      - {component: scan_window, state: dirty, view: closeup/scan_window_dirty.webp}
+    direction: 读码的那一头先看看干不干净。
+    leak_keywords: [窗口脏, 油污, 擦一下扫码枪, 镜头脏, 扫码头脏]
+    correct_path:
+      - {action: inspect, target: hmi}
+      - {action: inspect, target: scan_window}
+      - {action: clean_scanner_window}
+      - {action: rescan}
+      - {action: resume}
+  - id: RC-T103-B
+    name: 标签破损
+    weight: 0.35
+    in_operator_scope: false
+    setup: {label: damaged}
+    clues:
+      - {indicator: hmi.alarm, value: "T-103 扫码失败"}
+      - {component: label, state: damaged, view: closeup/label_damaged.webp}
+    andon_target: quality
+    repair: {label: normal}
+    repair_first_piece: false
+    direction: 扫码枪本身没毛病的话，看看被扫的那一头。
+    leak_keywords: [标签破, 标签坏, 码坏了, 撕裂, 补码, 码区缺]
+    correct_path:
+      - {action: inspect, target: hmi}
+      - {action: inspect, target: scan_window}
+      - {action: inspect, target: label}
+      - {action: pull_andon, target: quality}
+      - {action: andon_report, elements: all}
+      - {action: wait}
+      - {action: resume}
+  - id: RC-T103-C
+    name: 扫码枪线缆松动
+    weight: 0.2
+    in_operator_scope: false
+    setup: {scanner_cable: loose}
+    clues:
+      - {indicator: hmi.alarm, value: "T-103 扫码失败（扫码枪无响应）"}
+      - {component: scanner_cable, state: loose, view: closeup/scanner_cable_loose.webp}
+    andon_target: maintenance
+    repair: {scanner_cable: ok}
+    repair_first_piece: false
+    direction: 扫码枪亮不亮？顺着它往后看看。
+    leak_keywords: [线缆松, 插头松, 线没插好, 针脚, 插头脱出]
+    correct_path:
+      - {action: inspect, target: hmi}
+      - {action: inspect, target: scan_window}
+      - {action: inspect, target: scanner_cable}
+      - {action: pull_andon, target: maintenance}
+      - {action: andon_report, elements: all}
+      - {action: wait}
+      - {action: resume}
+distractors:
+  - {target: label, text: 条码标签边缘有一道轻微折痕，码区完整、清晰。}
+  - {target: pressure_gauge, value: 0.52, text: 压力表读数 0.52 MPa，指针在绿区，比平时略低一点。}
+rules: [R-HDL-02, R-HDL-03, R-PRM-05]
+negative_cases:
+  - name: 自己插线缆
+    root_cause: RC-T103-C
+    path: [{action: inspect, target: hmi}, {action: reconnect_cable}]
+    expect: {violations: [R-PRM-05]}
+  - name: 不查看就反复扫码
+    root_cause: RC-T103-B
+    path: [{action: rescan}, {action: rescan}, {action: rescan}]
+    expect: {violations: [R-HDL-02, R-HDL-03]}
+author: 示例师傅
+reviewed_by: [equipment, quality, ehs]

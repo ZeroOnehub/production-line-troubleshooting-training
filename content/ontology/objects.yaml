@@ -1,0 +1,487 @@
+# 业务本体 · 对象字典与 OP30 工位世界（唯一事实来源）
+# 全部为虚构示例：工厂、设备、报警码、参数均不对应任何真实产线。参数为取整的示意值。
+version: 1
+updated: 2026-11-03
+
+# ---------------------------------------------------------------------------
+# 一、对象类型字典（现场世界 + 训练与内容）。文档 03 的对象字典表由脚本从这里生成。
+# ---------------------------------------------------------------------------
+object_types:
+  - {id: Station, name: 工位, block: 现场世界, meaning: 产线上的一个作业位置, attributes: [编号, 名称, 节拍, 当前型号], note: ""}
+  - {id: Equipment, name: 设备, block: 现场世界, meaning: 工位上的设备, attributes: [类型, 所属工位, 状态], note: 拧紧枪、夹具、光栅等}
+  - {id: Component, name: 部件, block: 现场世界, meaning: 设备上可观察、可更换的部分, attributes: [所属设备, 状态（正常/磨损/松动/脏污）, 是否易耗件], note: 批头、套筒、到位传感器}
+  - {id: Indicator, name: 指示, block: 现场世界, meaning: 可被观察到的信号, attributes: [来源, 取值], note: 三色灯、HMI 字段、压力表读数、拧紧曲线}
+  - {id: AlarmDef, name: 报警定义, block: 现场世界, meaning: 报警码及含义, attributes: [代码, 文本, 级别, 可能根因], note: 同一报警对应多个根因}
+  - {id: RootCause, name: 根因, block: 现场世界, meaning: 导致报警的具体原因, attributes: [所属报警, 可观察线索, 正确处置路径, 是否在操作工权限内], note: 随机抽取的单位}
+  - {id: Action, name: 动作, block: 现场世界, meaning: 学员可执行的操作, attributes: [前置条件, 效果, 所需权限, 耗时, 是否要求设备暂停], note: 本体的“动词”}
+  - {id: Role, name: 角色, block: 现场世界, meaning: 谁能做什么, attributes: [可执行的动作集合], note: 操作工、维修、班长、质量}
+  - {id: Rule, name: 规则, block: 现场世界, meaning: 安全、处置、质量、权限规则, attributes: [条件, 结论, 严重度, 来源, 确认人], note: 师傅经验翻译成可判定条件}
+  - {id: ProductVariant, name: 型号, block: 现场世界, meaning: A 型、B 型, attributes: [螺栓规格, 程序号, 定位块], note: 换型与防错}
+  - {id: Workpiece, name: 工件, block: 现场世界, meaning: 当前在工位上的产品, attributes: [条码, 型号, 拧紧结果, 是否 NG, 去向], note: NG 流出判定依赖它}
+  - {id: Scenario, name: 关卡, block: 训练与内容, meaning: 一次训练的剧本, attributes: [类型, 初始状态, 事件, 可抽取的根因, 评分规则, 版本], note: 多版本对象}
+  - {id: Session, name: 训练局, block: 训练与内容, meaning: 学员玩一局, attributes: [学员, 关卡版本, 抽中的根因, 状态, 计时, 得分], note: 中心对象}
+  - {id: ActionLog, name: 操作记录, block: 训练与内容, meaning: 训练局里的每一步, attributes: [时间, 动作, 参数, 结果, 是否违规], note: 复盘和看板的数据源}
+  - {id: AndonReport, name: 汇报, block: 训练与内容, meaning: Andon 电话汇报, attributes: [内容, 要素覆盖（工位/报警码/已做操作/NG 数量）, 评分], note: ""}
+  - {id: HintLog, name: 提示记录, block: 训练与内容, meaning: AI 给出的提示, attributes: [级别 1–3, 时间], note: 算提示使用率}
+  - {id: Trainee, name: 学员, block: 训练与内容, meaning: 操作工, attributes: [段位, 技能矩阵], note: ""}
+  - {id: ScenarioDraft, name: 关卡草稿, block: 训练与内容, meaning: 工坊里的草稿, attributes: [来源, 生成内容, 状态, 版本, 制作计时], note: 多版本对象}
+  - {id: Review, name: 审核记录, block: 训练与内容, meaning: 三方审核, attributes: [审核人角色, 结论, 意见], note: 发布的前置条件}
+
+relations:
+  - {from: Station, verb: 包含, to: Equipment, cardinality: 一对多}
+  - {from: Equipment, verb: 包含, to: Component, cardinality: 一对多}
+  - {from: AlarmDef, verb: 可由…引起, to: RootCause, cardinality: 一对多}
+  - {from: RootCause, verb: 表现为, to: Indicator, cardinality: 多对多, note: 指示的特定取值}
+  - {from: Role, verb: 被授权执行, to: Action, cardinality: 多对多}
+  - {from: Rule, verb: 约束, to: Action, cardinality: 多对多}
+  - {from: Scenario, verb: 引用, to: AlarmDef, cardinality: 多对多, note: 同时引用根因}
+  - {from: Scenario, verb: 新版本替代, to: Scenario, cardinality: 一对一}
+  - {from: Session, verb: 使用, to: Scenario, cardinality: 多对一, note: 关卡版本}
+  - {from: Session, verb: 抽中, to: RootCause, cardinality: 多对一}
+  - {from: Session, verb: 产生, to: ActionLog, cardinality: 一对多, note: 同时产生汇报、提示记录}
+  - {from: ScenarioDraft, verb: 经审核全部通过后发布为, to: Scenario, cardinality: 一对一}
+
+# ---------------------------------------------------------------------------
+# 二、产线与工位（示例）
+# ---------------------------------------------------------------------------
+factory: 示例转向系统总成装配车间
+line:
+  name: 管柱式电动助力转向（CEPS）总成装配线（示例）
+  stations:
+    - {id: OP10, name: 上料与扫码绑定, mvp: 背景}
+    - {id: OP20, name: 轴承压装, mvp: 第二工位（P2，验证关卡工坊可扩展）}
+    - {id: OP30, name: 电机总成螺栓拧紧, mvp: MVP 主工位}
+    - {id: OP40, name: 控制器安装与插接件防错, mvp: 背景}
+    - {id: OP50, name: 终检（EOL）, mvp: 背景；NG 件流出时在这里被发现}
+    - {id: OP60, name: 打标与包装, mvp: 背景}
+
+station:
+  id: OP30
+  name: 电机总成螺栓拧紧
+  takt_s: 60                # 节拍，示意值
+  loss_per_min_yuan: 200    # 停线损失，示意值，只用于游戏计分
+  bolts_per_piece: 4
+  default_variant: A
+
+variants:
+  A: {name: A 型, bolt: A 型螺栓（示意：短规格）, program: P01, block: A, color: 蓝色}
+  B: {name: B 型, bolt: B 型螺栓（示意：长规格）, program: P02, block: B, color: 黄色}
+
+# 压力表示意值（MPa）。绿区 ≥ 0.45，黄区 0.40–0.45，红区 < 0.40。
+air_pressure:
+  normal: 0.55
+  green_min: 0.45
+  red_below: 0.40
+  effects:                  # 部件状态 → 压力读数（取最低者）
+    hand_valve.half: 0.36
+    air_supply.weak: 0.42
+    air_supply.low: 0.35
+
+# 批头寿命（示意值）
+bit_life:
+  limit: 5000
+  normal_count: 2140
+  worn_count: 4960
+
+# ---------------------------------------------------------------------------
+# 三、设备与部件（OP30 工位构成）
+#   zone：fixture=夹具区域；tool=拧紧枪刀具；curtain=光栅镜面；electrical=电气；none=无危险区
+#   scope：station=持续存在；piece=只属于当前工件（隔离/重新放置后消失）；batch=来料批次
+# ---------------------------------------------------------------------------
+equipment:
+  - {id: gun, name: 电动拧紧枪, type: 拧紧设备, components: [bit, socket, gun_motor]}
+  - {id: controller, name: 拧紧控制器, type: 控制设备, components: [controller_link]}
+  - {id: fixture, name: 工件定位夹具, type: 夹具（气缸夹紧 + 到位传感器）, components: [fixture_seat, pos_sensor, locating_block]}
+  - {id: scanner, name: 扫码枪, type: 追溯设备, components: [scan_window, scanner_cable]}
+  - {id: light_curtain, name: 安全光栅, type: 安全装置, components: [curtain_mirror, curtain_zone, curtain_function]}
+  - {id: tower_light, name: 三色灯, type: 指示装置, components: [tower_lamp]}
+  - {id: hmi, name: HMI 触摸屏, type: 人机界面, components: []}
+  - {id: estop, name: 急停按钮, type: 安全装置, components: [estop_button, estop_function]}
+  - {id: andon_button, name: Andon 呼叫按钮, type: 呼叫装置, components: [], aliases: [Andon, Andon按钮, 安灯, 呼叫按钮, 拉绳], closeup: andon_button.webp, text: Andon 呼叫按钮装在工位右侧立柱上，拉下后选择呼叫维修、质量员或班组长。}
+  - {id: air_unit, name: 气源三联件与压力表, type: 气动元件, components: [pressure_gauge, hand_valve, air_unit_cup, air_supply]}
+  - {id: electrical_cabinet, name: 电气柜, type: 电气设备（操作工禁止打开）, components: [], aliases: [电气柜, 电柜, 电箱, 控制柜, 柜子], closeup: electrical_cabinet.webp, text: 电气柜门关闭并上锁，门上贴着“非授权人员禁止打开”。}
+  - {id: materials, name: 物料, type: 物料, components: [bolt_box, bolt_level_sensor, feed_material, bit_spare_box]}
+  - {id: workpiece, name: 电机总成（当前工件）, type: 工件, components: [label, thread_hole, bolt_seat]}
+  - {id: quality_facilities, name: 质量设施, type: 质量设施, components: [ng_bin, ng_label, first_piece_record, checklist_record]}
+
+components:
+  bit:
+    name: 批头
+    equipment: gun
+    consumable: true
+    zone: tool
+    scope: station
+    aliases: [批头, 起子头, 刀头, 批嘴, 批咀, 螺丝刀头, 头子, 起子]
+    default: normal
+    states:
+      normal: {label: 正常, abnormal: false, closeup: bit_normal.webp, text: 批头刀口棱角清晰，十字槽边缘无崩缺、无发亮的磨损痕迹。}
+      worn: {label: 磨损, abnormal: true, closeup: bit_worn.webp, text: 批头刀口明显磨圆，十字槽边缘发亮，有一圈磨损痕迹。}
+  socket:
+    name: 套筒
+    equipment: gun
+    consumable: false
+    zone: tool
+    scope: station
+    aliases: [套筒, 套头, 套子, 套管]
+    default: normal
+    states:
+      normal: {label: 正常, abnormal: false, closeup: socket_normal.webp, text: 套筒安装到位，定位销卡紧，与枪轴之间没有间隙。}
+      loose: {label: 松动, abnormal: true, closeup: socket_loose.webp, text: 套筒与枪轴之间有明显间隙，定位销没有完全卡入。}
+  gun_motor:
+    name: 拧紧枪枪身
+    equipment: gun
+    consumable: false
+    zone: tool
+    scope: station
+    aliases: [枪身, 拧紧枪, 电枪, 枪, 电机, 拧紧枪电机]
+    default: normal
+    states:
+      normal: {label: 正常, abnormal: false, closeup: gun_normal.webp, text: 拧紧枪枪身外观正常，没有异响，也没有异味。}
+      abnormal: {label: 异常, abnormal: true, closeup: gun_abnormal.webp, text: 拧紧枪枪身电机位置有焦糊味，外壳局部发烫，靠近能听到断续的异响。}
+  controller_link:
+    name: 控制器通讯
+    equipment: controller
+    consumable: false
+    zone: electrical
+    scope: station
+    aliases: [控制器, 拧紧控制器, 通讯灯, 控制箱, 通讯]
+    default: ok
+    states:
+      ok: {label: 正常, abnormal: false, closeup: controller_ok.webp, text: 拧紧控制器面板通讯指示灯绿色常亮。}
+      cable_loose: {label: 通讯中断, abnormal: true, closeup: controller_lost.webp, text: 拧紧控制器面板通讯指示灯红色常亮，屏幕显示“通讯中断”，控制器本身可以操作。}
+      module_fault: {label: 通讯中断, abnormal: true, closeup: controller_lost.webp, text: 拧紧控制器面板通讯指示灯红色快闪，屏幕显示“网络模块错误”，按键没有反应。}
+  fixture_seat:
+    name: 夹具定位面
+    equipment: fixture
+    consumable: false
+    zone: fixture
+    scope: station
+    aliases: [夹具, 定位夹具, 工装, 卡具, 治具, 夹具定位面, 夹具里面, 定位面]
+    default: normal
+    states:
+      normal: {label: 正常, abnormal: false, closeup: fixture_normal.webp, text: 夹具定位面干净，工件贴合到位，落在定位销上。}
+      debris: {label: 有碎屑, abnormal: true, closeup: fixture_debris.webp, text: 夹具定位面上有几粒金属碎屑，工件底部没有完全贴合。}
+      misplaced: {label: 工件放置不正, abnormal: true, scope: piece, closeup: fixture_misplaced.webp, text: 工件一侧翘起，没有落到定位销上。}
+  pos_sensor:
+    name: 到位传感器
+    equipment: fixture
+    consumable: false
+    zone: fixture
+    scope: station
+    aliases: [到位传感器, 传感器, 感应器, 接近开关, 到位开关]
+    default: normal
+    states:
+      normal: {label: 正常, abnormal: false, closeup: sensor_normal.webp, text: 工件到位时，到位传感器指示灯黄色点亮。}
+      fault: {label: 故障, abnormal: true, closeup: sensor_fault.webp, text: 工件已经贴合到位，但到位传感器指示灯不亮。}
+  locating_block:
+    name: 夹具定位块
+    equipment: fixture
+    consumable: false
+    zone: fixture
+    scope: station
+    aliases: [定位块, 垫块, 定位板, 夹具定位块]
+    default: A
+    states:
+      A: {label: A 型定位块, abnormal: false, closeup: locating_block_A.webp, text: 夹具上装的是 A 型定位块（蓝色标识）。}
+      B: {label: B 型定位块, abnormal: false, closeup: locating_block_B.webp, text: 夹具上装的是 B 型定位块（黄色标识）。}
+  scan_window:
+    name: 扫码窗口
+    equipment: scanner
+    consumable: false
+    zone: none
+    scope: station
+    aliases: [扫码窗口, 扫码枪窗口, 扫码头, 扫描窗, 扫码镜头, 扫码枪, 扫描枪, 扫码器, 窗口]
+    default: clean
+    states:
+      clean: {label: 干净, abnormal: false, closeup: scan_window_clean.webp, text: 扫码枪窗口洁净透亮。}
+      dirty: {label: 脏污, abnormal: true, closeup: scan_window_dirty.webp, text: 扫码枪窗口上蒙着一层油污和粉尘。}
+  scanner_cable:
+    name: 扫码枪线缆
+    equipment: scanner
+    consumable: false
+    zone: electrical
+    scope: station
+    aliases: [扫码枪线缆, 扫码枪线, 扫码枪的线, 扫码枪那根线, 线缆, 数据线, 扫码枪插头, 插头]
+    default: ok
+    states:
+      ok: {label: 正常, abnormal: false, closeup: scanner_cable_ok.webp, text: 扫码枪线缆插头插紧，线缆没有破损。}
+      loose: {label: 松动, abnormal: true, closeup: scanner_cable_loose.webp, text: 扫码枪线缆插头没有完全插到位，露出一截金属针脚。}
+  curtain_mirror:
+    name: 光栅镜面
+    equipment: light_curtain
+    consumable: false
+    zone: curtain
+    scope: station
+    aliases: [光栅镜面, 光幕镜面, 光栅镜子, 镜面, 光栅, 光幕, 安全光栅]
+    default: clean
+    states:
+      clean: {label: 干净, abnormal: false, closeup: curtain_mirror_clean.webp, text: 光栅发射端和接收端镜面干净，两端对位指示灯绿色。}
+      dirty: {label: 脏污, abnormal: true, closeup: curtain_mirror_dirty.webp, text: 光栅接收端镜面上有油雾和粉尘，对位指示灯在黄绿之间闪烁。}
+      misaligned: {label: 对位偏移, abnormal: true, closeup: curtain_mirror_misaligned.webp, text: 光栅接收端支架上有被撞过的痕迹，两端对位指示灯为红色。}
+  curtain_zone:
+    name: 光栅检测区域
+    equipment: light_curtain
+    consumable: false
+    zone: none
+    scope: station
+    aliases: [光栅区域, 光幕区域, 光栅前面, 工位前方, 检测区域, 光栅那块, 周转盒, 物料盒, 空盒子]
+    default: clear
+    states:
+      clear: {label: 无遮挡, abnormal: false, closeup: curtain_zone_clear.webp, text: 光栅检测区域内没有物品。}
+      blocked: {label: 有遮挡, abnormal: true, closeup: curtain_zone_blocked.webp, text: 光栅检测区域里放着一个空的物料周转盒。}
+  curtain_function:
+    name: 光栅功能
+    equipment: light_curtain
+    consumable: false
+    zone: none
+    scope: station
+    hidden: true            # 只能通过“光栅功能测试”观察
+    aliases: [光栅功能, 光栅测试]
+    default: ok
+    states:
+      ok: {label: 正常, abnormal: false, closeup: curtain_mirror_clean.webp, text: 用测试棒遮挡光栅，设备立即停止，HMI 提示光栅中断。}
+      fault: {label: 失效, abnormal: true, closeup: curtain_mirror_clean.webp, text: 用测试棒遮挡光栅，设备没有停止，HMI 也没有提示。}
+  tower_lamp:
+    name: 三色灯灯组
+    equipment: tower_light
+    consumable: true
+    zone: none
+    scope: station
+    hidden: true            # 灯组好坏只能通过“三色灯测试”观察；当前颜色见指示 tower_light
+    aliases: [三色灯, 塔灯, 信号灯, 灯塔]
+    default: normal
+    states:
+      normal: {label: 正常, abnormal: false, closeup: tower_light.webp, text: 三色灯测试时红、黄、绿三色都能正常点亮。}
+      bulb_fault: {label: 黄灯不亮, abnormal: true, closeup: tower_light.webp, text: 三色灯测试时红灯、绿灯正常，黄灯不亮。}
+  estop_button:
+    name: 急停按钮
+    equipment: estop
+    consumable: false
+    zone: none
+    scope: station
+    aliases: [急停, 急停按钮, 红蘑菇, 蘑菇头, 紧急停止, 急停开关]
+    default: released
+    states:
+      released: {label: 已复位, abnormal: false, closeup: estop_released.webp, text: 急停按钮处于弹起（复位）状态。}
+      pressed: {label: 按下, abnormal: true, closeup: estop_pressed.webp, text: 急停按钮被按下并锁住。}
+  estop_function:
+    name: 急停功能
+    equipment: estop
+    consumable: false
+    zone: none
+    scope: station
+    hidden: true
+    aliases: [急停功能, 急停测试]
+    default: ok
+    states:
+      ok: {label: 正常, abnormal: false, closeup: estop_pressed.webp, text: 按下急停后设备立即停止，HMI 显示急停报警；复位后恢复。}
+      fault: {label: 失效, abnormal: true, closeup: estop_pressed.webp, text: 按下急停后，拧紧枪仍有动作，设备没有立即停止。}
+  pressure_gauge:
+    name: 压力表
+    equipment: air_unit
+    consumable: false
+    zone: none
+    scope: station
+    aliases: [压力表, 气压表, 气压, 气源压力, 表, 压力]
+    default: normal
+    dynamic: air_pressure   # 读数由引擎按 air_pressure 计算
+    states:
+      normal: {label: 正常, abnormal: false, closeup: gauge_normal.webp, text: "压力表读数 {pressure} MPa，指针在{pressure_zone}。"}
+      low: {label: 偏低, abnormal: true, closeup: gauge_low.webp, text: "压力表读数 {pressure} MPa，指针在{pressure_zone}。"}
+  hand_valve:
+    name: 工位手阀
+    equipment: air_unit
+    consumable: false
+    zone: none
+    scope: station
+    aliases: [手阀, 工位手阀, 阀门, 球阀, 气阀, 开关阀, 进气阀]
+    default: open
+    states:
+      open: {label: 全开, abnormal: false, closeup: valve_open.webp, text: 工位手阀手柄与管路平行，处于全开位置。}
+      half: {label: 半开, abnormal: true, closeup: valve_half.webp, text: 工位手阀手柄与管路成约 45°，只开了一半。}
+  air_unit_cup:
+    name: 三联件油杯
+    equipment: air_unit
+    consumable: false
+    zone: none
+    scope: station
+    aliases: [油杯, 油雾器, 三联件, 气源三联件, 过滤器]
+    default: normal
+    states:
+      normal: {label: 正常, abnormal: false, closeup: air_unit.webp, text: 三联件过滤杯无积水，油杯油位在刻度线以内。}
+  air_supply:
+    name: 车间供气
+    equipment: air_unit
+    consumable: false
+    zone: none
+    scope: station
+    hidden: true            # 工位上看不到主管路，只能从“手阀全开仍低压”推断
+    aliases: [车间供气, 主管路, 车间气源, 供气, 气源]
+    default: normal
+    states:
+      normal: {label: 正常, abnormal: false, closeup: gauge_normal.webp, text: 车间主管路压力在工位上看不到，只能看本工位压力表。}
+      weak: {label: 偏低, abnormal: true, closeup: gauge_low.webp, text: 车间主管路压力在工位上看不到，只能看本工位压力表。}
+      low: {label: 异常, abnormal: true, closeup: gauge_low.webp, text: 车间主管路压力在工位上看不到，只能看本工位压力表。}
+  bolt_box:
+    name: 螺栓料盒
+    equipment: materials
+    consumable: true
+    zone: none
+    scope: station
+    aliases: [螺栓料盒, 料盒, 螺栓盒, 螺丝盒, 料箱, 螺栓]
+    default: normal
+    states:
+      normal: {label: 正常, abnormal: false, closeup: bolt_box_normal.webp, text: "料盒标识为{bolt_variant_name}（{bolt_color}），盒内螺栓规格一致，余量充足。"}
+      mixed: {label: 混料, abnormal: true, closeup: bolt_box_mixed.webp, text: "料盒标识为{bolt_variant_name}（{bolt_color}），盒里混有少量长度明显不同的螺栓。"}
+      low: {label: 低位, abnormal: true, closeup: bolt_box_low.webp, text: "料盒标识为{bolt_variant_name}（{bolt_color}），盒内螺栓已经见底，只剩几颗。"}
+  feed_material:
+    name: 上料区来料
+    equipment: materials
+    consumable: false
+    zone: none
+    scope: station
+    aliases: [上料区, 来料, 料架, 上料架, 物料架, 待装件]
+    default: normal
+    states:
+      normal: {label: 正常, abnormal: false, closeup: feed_normal.webp, text: "上料区料架上的电机总成型号与当前生产型号一致（{order_variant_name}）。"}
+      wrong_variant: {label: 混入他型, abnormal: true, closeup: feed_wrong.webp, text: "上料区料架上混放了几件{other_variant_name}电机总成，与当前生产型号（{order_variant_name}）不符。"}
+  bolt_level_sensor:
+    name: 料盒料位传感器
+    equipment: materials
+    consumable: false
+    zone: electrical
+    scope: station
+    aliases: [料位传感器, 料盒传感器, 料位开关, 缺料传感器]
+    default: normal
+    states:
+      normal: {label: 正常, abnormal: false, closeup: level_sensor_normal.webp, text: 料位传感器指示灯绿色，料盒内螺栓高于检测位置。}
+      false_alarm: {label: 误报, abnormal: true, closeup: level_sensor_fault.webp, text: 料盒内螺栓明显高于检测位置，但料位传感器指示灯红色常亮。}
+  bit_spare_box:
+    name: 批头备件盒
+    equipment: materials
+    consumable: false
+    zone: none
+    scope: station
+    aliases: [批头备件盒, 备件盒, 备用批头, 备件]
+    default: normal
+    states:
+      normal: {label: 正常, abnormal: false, closeup: bit_normal.webp, text: 批头备件盒里有 5 支新批头，型号标识与在用批头一致。}
+  label:
+    name: 条码标签
+    equipment: workpiece
+    consumable: false
+    zone: none
+    scope: piece
+    aliases: [条码标签, 条码, 标签, 二维码, 码, 追溯码]
+    default: normal
+    states:
+      normal: {label: 正常, abnormal: false, closeup: label_normal.webp, text: 工件条码标签完整、清晰。}
+      damaged: {label: 破损, abnormal: true, closeup: label_damaged.webp, text: 工件条码标签一角撕裂，部分码区缺失。}
+  thread_hole:
+    name: 螺纹孔
+    equipment: workpiece
+    consumable: false
+    zone: none
+    scope: batch
+    aliases: [螺纹孔, 螺孔, 丝孔, 孔]
+    default: clean
+    states:
+      clean: {label: 干净, abnormal: false, closeup: thread_clean.webp, text: 电机总成螺纹孔内干净，没有异物。}
+      debris: {label: 有异物, abnormal: true, closeup: thread_debris.webp, text: 电机总成螺纹孔内能看到残留的切屑。}
+  bolt_seat:
+    name: 已拧螺栓
+    equipment: workpiece
+    consumable: false
+    zone: none
+    scope: piece
+    aliases: [螺栓头, 拧好的螺栓, 已拧螺栓, 螺栓状态, 螺丝头]
+    default: normal
+    states:
+      normal: {label: 正常, abnormal: false, closeup: bolt_seat_normal.webp, text: 已拧的螺栓头均贴合到位，没有歪斜。}
+      cross_threaded: {label: 斜入, abnormal: true, closeup: bolt_seat_cross.webp, text: 第 3 颗螺栓明显歪斜，螺栓头一侧翘起。}
+  ng_bin:
+    name: 红色 NG 料箱
+    equipment: quality_facilities
+    consumable: false
+    zone: none
+    scope: station
+    aliases: [NG 料箱, NG箱, 红箱子, 红色料箱, 不良品箱, NG 箱]
+    default: normal
+    states:
+      normal: {label: 正常, abnormal: false, closeup: ng_bin.webp, text: "红色 NG 料箱，当前箱内有 {ng_bin_count} 件。"}
+  ng_label:
+    name: NG 标签
+    equipment: quality_facilities
+    consumable: true
+    zone: none
+    scope: station
+    aliases: [NG 标签, NG标签, 不良标签, 红标签]
+    default: normal
+    states:
+      normal: {label: 正常, abnormal: false, closeup: ng_label.webp, text: NG 标签本放在 NG 料箱旁，标签需写明工位、报警码和时间。}
+  first_piece_record:
+    name: 首件确认记录
+    equipment: quality_facilities
+    consumable: false
+    zone: none
+    scope: station
+    aliases: [首件记录, 首件确认记录, 首件单]
+    default: normal
+    states:
+      normal: {label: 正常, abnormal: false, closeup: first_piece_record.webp, text: "首件确认记录夹在工位看板上，本班已记录 {first_piece_count} 次首件。"}
+  checklist_record:
+    name: 点检记录表
+    equipment: quality_facilities
+    consumable: false
+    zone: none
+    scope: station
+    aliases: [点检表, 点检记录, 点检记录表]
+    default: normal
+    states:
+      normal: {label: 正常, abnormal: false, closeup: checklist_record.webp, text: 开班点检记录表，共 8 项。}
+
+# ---------------------------------------------------------------------------
+# 四、指示（Indicator）：取值由引擎根据部件状态与训练局状态实时计算，前端叠加层显示
+# ---------------------------------------------------------------------------
+indicators:
+  hmi:
+    name: HMI 触摸屏
+    source: hmi
+    aliases: [HMI, hmi, 屏幕, 触摸屏, 显示屏, 面板, 报警, 报警信息, 报警码, 屏]
+    fields: [alarm, alarm_text, torque_result, angle_result, variant, program, scanned_variant, ok_count, ng_count, bit_counter, cycle_step, mode]
+  tighten_curve:
+    name: 拧紧曲线
+    source: hmi
+    aliases: [拧紧曲线, 曲线, 扭矩曲线, 角度曲线]
+    values:
+      none: 本件还没有拧紧数据。
+      ok: 曲线平滑，终止点落在扭矩和角度窗口内。
+      torque_low: 扭矩在达到目标前就终止，终止扭矩低于下限窗口。
+      angle_out: 角度超过上限窗口，曲线前段出现异常平台。
+  bit_counter:
+    name: 批头使用次数
+    source: hmi
+    aliases: [批头次数, 使用次数, 批头使用次数, 计数, 寿命]
+    text: "批头使用次数 {bit_count} / {bit_limit} 次（示意值）。"
+  tower_light:
+    name: 三色灯（当前颜色）
+    source: tower_light
+    aliases: [三色灯颜色, 灯, 红灯, 黄灯, 绿灯]
+    values: {green: 绿灯常亮（正常生产）, yellow: 黄灯常亮（暂停/待机）, red: 红灯闪烁（报警或急停）, off: 全灭（未开机）}
+  curtain_status:
+    name: 光栅状态
+    source: light_curtain
+    values: {ok: 光栅正常, interrupted: 光栅中断}
+  estop_status:
+    name: 急停状态
+    source: estop
+    values: {released: 急停已复位, pressed: 急停按下}
+
+# 可观察的“周边”与“工件”汇总目标（由动作 inspect / safety_check 返回）
+composite_targets:
+  workpiece:
+    name: 当前工件
+    aliases: [工件, 产品, 电机总成, 零件, 这件, 这个件, 当前工件, 件]
+  surroundings:
+    name: 工位周边
+    aliases: [周边, 周围, 四周, 现场, 旁边]

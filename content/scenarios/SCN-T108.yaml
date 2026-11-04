@@ -1,0 +1,76 @@
+id: SCN-T108
+version: 1
+type: alarm
+layer: 3
+station: OP30
+title: 拧紧控制器通讯中断
+alarm: T-108
+summary: HMI 报 T-108 拧紧控制器通讯中断。拆成两种表现不同、处置相同（直接叫维修）的子根因。考察“不该碰的别碰”。
+story: 第 3 件刚放上，HMI 弹出通讯中断，拧紧枪没有任何反应。
+objective: 不碰电气柜、线缆和参数，暂停设备，直接叫维修
+event: {at_piece: 3}
+root_causes:
+  - id: RC-T108-A
+    name: 通讯线缆接头松动（电气柜内）
+    weight: 0.6
+    in_operator_scope: false
+    setup: {controller_link: cable_loose}
+    clues:
+      - {indicator: hmi.alarm, value: "T-108 拧紧控制器通讯中断"}
+      - {component: controller_link, state: cable_loose, view: closeup/controller_lost.webp}
+    andon_target: maintenance
+    repair: {controller_link: ok}
+    repair_first_piece: true
+    direction: 控制器那边是什么灯？这种问题归谁管？
+    leak_keywords: [线缆松, 接头松, 电气柜里, 网线, 插头]
+    correct_path:
+      - {action: inspect, target: hmi}
+      - {action: inspect, target: controller_link}
+      - {action: pause_equipment}
+      - {action: pull_andon, target: maintenance}
+      - {action: andon_report, elements: all}
+      - {action: wait}
+      - {action: first_piece_check}
+      - {action: resume}
+  - id: RC-T108-B
+    name: 控制器网络模块故障
+    weight: 0.4
+    in_operator_scope: false
+    setup: {controller_link: module_fault}
+    clues:
+      - {indicator: hmi.alarm, value: "T-108 拧紧控制器通讯中断"}
+      - {component: controller_link, state: module_fault, view: closeup/controller_lost.webp}
+    andon_target: maintenance
+    repair: {controller_link: ok}
+    repair_first_piece: true
+    direction: 控制器那边是什么灯？这种问题归谁管？
+    leak_keywords: [模块坏, 网络模块, 模块故障, 换模块]
+    correct_path:
+      - {action: inspect, target: hmi}
+      - {action: inspect, target: controller_link}
+      - {action: pause_equipment}
+      - {action: pull_andon, target: maintenance}
+      - {action: andon_report, elements: all}
+      - {action: wait}
+      - {action: first_piece_check}
+      - {action: resume}
+distractors:
+  - {target: electrical_cabinet, text: 电气柜门关闭并上锁，门缝处有一点灰尘，外观无异常。}
+  - {target: scanner_cable, text: 扫码枪线缆外皮有一处旧磨痕，插头插紧。}
+  - {target: pressure_gauge, value: 0.52, text: 压力表读数 0.52 MPa，指针在绿区，比平时略低一点。}
+rules: [R-PRM-01, R-PRM-02, R-PRM-05, R-PRM-07, R-HDL-09]
+negative_cases:
+  - name: 打开电气柜看接线
+    root_cause: RC-T108-A
+    path: [{action: inspect, target: hmi}, {action: open_electrical_cabinet}]
+    expect: {violations: [R-PRM-01]}
+  - name: 通讯中断按复位
+    root_cause: RC-T108-B
+    path: [{action: inspect, target: hmi}, {action: reset_alarm}]
+    expect: {violations: [R-HDL-09]}
+  - name: 进维护页面
+    root_cause: RC-T108-A
+    path: [{action: inspect, target: hmi}, {action: hmi_enter_maintenance}]
+    expect: {violations: [R-PRM-07]}
+author: 示例师傅
+reviewed_by: [equipment, quality, ehs]

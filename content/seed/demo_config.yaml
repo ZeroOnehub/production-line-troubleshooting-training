@@ -1,0 +1,34 @@
+# 演示数据生成配置。生成的学员、训练局、停机记录全部带 is_demo 标记，看板上显示“演示数据”。
+# 这些数据只用于展示看板功能，不代表真实培训效果。
+version: 1
+seed: 20261103
+days: 30                 # 训练局开始时间分布在最近 N 天
+teams:
+  - {name: 甲班（演示）, trainees: 7}
+  - {name: 乙班（演示）, trainees: 6}
+  - {name: 丙班（演示）, trainees: 6}
+trainee_name_prefix: 演示学员
+max_attempts_per_scenario: 3
+# 学员能力在 [skill_min, skill_max] 均匀分布；失误概率 = 基础概率 × (1.2 − 能力)
+skill_min: 0.25
+skill_max: 0.95
+# 学员在第几层“停下”（模拟还在培训中）：按顺序打关，打到停下的位置为止
+stop_after_scenarios: [3, 16]
+mistakes:
+  skip_inspect: 0.35       # 不看就动手
+  skip_pause: 0.06         # 不暂停就伸手 / 换批头（多半安全终止）
+  skip_isolate: 0.06       # NG 件没隔离（NG 流出）
+  skip_first_piece: 0.12   # 漏首件
+  blind_reset: 0.15        # 没查就先复位一次
+  wrong_target: 0.06       # 叫错人
+  poor_report: 0.30        # 汇报漏要素
+  forbidden_try: 0.05      # 尝试越权（打开电气柜等）
+  unnecessary_andon: 0.05  # 能自己处理的也拉 Andon
+hints:
+  max_per_session: 3
+  probability: 0.45
+think_time_s: [5, 40]      # 每步思考时间（只计入异常处置中的停线）
+downtime_records:
+  file: downtime_records.csv
+  records: 160
+  days: 60

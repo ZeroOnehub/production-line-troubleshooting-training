@@ -1,0 +1,94 @@
+# 业务本体 · 角色与权限（虚构规则）。权限矩阵（文档 03）由脚本从这里与 actions.yaml 生成。
+version: 1
+
+roles:
+  operator:
+    name: 操作工
+    in_system: 学员，玩家
+    ai: false
+    summary: 可以暂停设备、清理工位、按规定次数复位报警、更换批头、隔离 NG 件、拉 Andon；不可以打开电气柜、修改程序和参数、调整传感器、拆机
+    # 操作工可执行：除 forbidden 类以外的全部学员动作
+    allow_categories: [observe, control, flow, handle, quality, changeover, escalate, wait, record, tour]
+    deny: [open_electrical_cabinet, modify_program_params, adjust_sensor, disassemble_equipment, reconnect_cable, adjust_regulator, hmi_enter_maintenance, bypass_safety, andon_report]
+  coach:
+    name: 带班师傅
+    in_system: AI 陪练；现实中也是关卡出题人
+    ai: true
+    summary: 分级提示，讲“为什么”和“别碰什么”；不直接操作设备
+    allow: []
+  maintenance:
+    name: 设备维修技术员
+    in_system: AI 角色，接 Andon 电话
+    ai: true
+    andon: true
+    summary: 处理电气、气动、传感器、程序类问题
+    allow: [open_electrical_cabinet, modify_program_params, adjust_sensor, disassemble_equipment, reconnect_cable, adjust_regulator, hmi_enter_maintenance, replace_bit, tighten_socket, reset_alarm, release_estop]
+    handles: [电气, 气动, 传感器, 程序, 设备]
+  team_leader:
+    name: 班组长
+    in_system: AI 角色，接 Andon 电话
+    ai: true
+    andon: true
+    summary: 换型确认、物料异常、进度催促
+    allow: [hmi_select_variant, hmi_select_program, reset_alarm]
+    handles: [换型, 物料, 型号, 程序号]
+  quality:
+    name: 质量员
+    in_system: AI 角色，接 Andon 电话
+    ai: true
+    andon: true
+    summary: 首件确认、NG 判定、批次隔离
+    allow: [isolate_bolt_box, call_quality_confirm, reset_alarm]
+    handles: [首件, NG 判定, 批次, 标签]
+  material_handler:
+    name: 物料员
+    in_system: 背景角色（不由 AI 扮演，按固定时间到场）
+    ai: false
+    summary: 补料、更换料盒（T-109 缺料关卡需要）
+    allow: [replace_bolt_box]
+  engineer_equipment:
+    name: 设备工程师
+    in_system: 关卡工坊审核人
+    ai: false
+    reviewer: equipment
+    summary: 审核设备行为是否合理
+  engineer_quality:
+    name: 质量工程师
+    in_system: 关卡工坊审核人
+    ai: false
+    reviewer: quality
+    summary: 审核质量后果是否正确
+  engineer_ehs:
+    name: EHS 工程师
+    in_system: 关卡工坊审核人
+    ai: false
+    reviewer: ehs
+    summary: 审核安全规则是否完整
+  training_admin:
+    name: 培训管理员
+    in_system: 看板用户
+    ai: false
+    summary: 查看进度与薄弱点
+
+# Andon 呼叫对象（拉 Andon 时选择）
+andon_targets:
+  maintenance: {name: 维修技术员, role: maintenance}
+  quality: {name: 质量员, role: quality}
+  team_leader: {name: 班组长, role: team_leader}
+
+# 支援到场时间（示意值，单位秒）。到场时间由引擎按汇报要素覆盖率计算，AI 不参与。
+support:
+  andon:
+    base_arrival_s: 120          # 四项要素全部说清时的到场时间
+    per_missing_element_s: 90    # 每缺一项（或说错）增加
+    per_follow_up_s: 30          # 电话里每被追问一轮增加
+    report_elements:
+      station: 工位
+      alarm_code: 报警码
+      actions_done: 已做操作
+      ng_count: NG 数量
+    max_follow_up_rounds: 1
+  material:
+    arrival_s: 90
+  quality_confirm:
+    arrival_s: 60
